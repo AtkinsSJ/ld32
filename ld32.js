@@ -12,6 +12,7 @@ var Game = {
 	height: canvas.height,
 	keysPressed: {},
 	scene: new MenuScene(),
+	images: {},
 };
 
 // Keyboard handling
@@ -46,7 +47,7 @@ function MenuScene() {
 
 function PlayScene() {
 	this.update = function() {
-
+		Game.context2d.drawImage(Game.images["test"], 100, 100);
 	};
 }
 
@@ -59,5 +60,31 @@ function main() {
 	Game.scene.update();
 }
 
+function start() {
+	// Load things!
 
-main();
+	var imagesToLoad = [
+		"test"
+	];
+	var imagesLoaded = 0;
+
+	function onImageLoaded() {
+		imagesLoaded++;
+		if (imagesLoaded >= imagesToLoad.length) {
+			// Done!
+			console.log("Finished loading images!");
+			main();
+		}
+	}
+
+	for (var i=0; i<imagesToLoad.length; i++) {
+		var imgName = imagesToLoad[i];
+		var img = new Image();
+		Game.images[imgName] = img;
+		img.onload = onImageLoaded;
+		img.src = "assets/" + imgName + ".png";
+	}
+
+}
+
+start();
