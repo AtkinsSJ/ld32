@@ -13,6 +13,7 @@ var Game = {
 	keysPressed: {},
 	scene: new MenuScene(),
 	images: {},
+	sounds: {},
 };
 
 // Keyboard handling
@@ -33,6 +34,7 @@ function MenuScene() {
 		// Go to play scene
 		if (Game.keysPressed[32]) {
 			Game.scene = new PlayScene();
+			Game.sounds["jump"].play();
 		}
 
 		// Render text
@@ -62,19 +64,29 @@ function main() {
 
 function start() {
 	// Load things!
-
 	var imagesToLoad = [
 		"test"
 	];
 	var imagesLoaded = 0;
+	var soundsToLoad = [
+		"jump"
+	];
+	var soundsLoaded = 0;
+
+	function checkIfReady() {
+		if ((imagesLoaded >= imagesToLoad.length)
+			&&(soundsLoaded >= soundsToLoad.length) ) {
+			// Done!
+			console.log("Finished loading assets!");
+			main();
+		}
+	}
+
+	// --------------------- LOAD IMAGES ------------------------
 
 	function onImageLoaded() {
 		imagesLoaded++;
-		if (imagesLoaded >= imagesToLoad.length) {
-			// Done!
-			console.log("Finished loading images!");
-			main();
-		}
+		checkIfReady();
 	}
 
 	for (var i=0; i<imagesToLoad.length; i++) {
@@ -85,6 +97,25 @@ function start() {
 		img.src = "assets/" + imgName + ".png";
 	}
 
+	// --------------------- LOAD SOUNDS ------------------------
+
+	function onSoundLoaded() {
+		soundsLoaded++;
+		checkIfReady();
+	}
+
+	for (var i=0; i<soundsToLoad.length; i++) {
+		var soundName = soundsToLoad[i];
+		var sound = new Howl({
+			urls: [
+				"assets/" + soundName + ".mp3",
+				"assets/" + soundName + ".ogg",
+				"assets/" + soundName + ".wav",
+			],
+			onload: onSoundLoaded,
+		});
+		Game.sounds[soundName] = sound;
+	}
 }
 
 start();
