@@ -80,22 +80,33 @@ function PlayScene() {
 		vx: 0,
 		vy: 0,
 	};
+	this.ball.w2 = this.ball.w/2;
+	this.ball.h2 = this.ball.h/2;
 	this.updateBall = function(deltaTime, ball) {
 		if (ball.launched) {
 			ball.x += ball.vx * deltaTime;
 			ball.y += ball.vy * deltaTime;
 
-			// Bounce off the screen edges!
-			if (ball.x <= ball.w/2) {
-				ball.vx = -ball.vx;
-				ball.x = ball.w/2 + 1;
-			} else if (ball.x >= Game.width-ball.w/2) {
-				ball.vx = -ball.vx;
-				ball.x = Game.width-ball.w/2 -1;
-			}
-			if (ball.y <= ball.h/2) {
+			// Bounce off the paddle!
+			if ((ball.y + ball.h2 >= this.paddle.y - this.paddle.h2)
+				&& (ball.x + ball.w2 >= this.paddle.x - this.paddle.w2)
+				&& (ball.x - ball.w2 <= this.paddle.x + this.paddle.w2)) {
+
 				ball.vy = -ball.vy;
-				ball.y = ball.h/2 + 1;
+				ball.y = this.paddle.y - this.paddle.h2 - ball.h2 - 1;
+			}
+
+			// Bounce off the screen edges!
+			if (ball.x <= ball.w2) {
+				ball.vx = -ball.vx;
+				ball.x = ball.w2 + 1;
+			} else if (ball.x >= Game.width-ball.w2) {
+				ball.vx = -ball.vx;
+				ball.x = Game.width-ball.w2 -1;
+			}
+			if (ball.y <= ball.h2) {
+				ball.vy = -ball.vy;
+				ball.y = ball.h2 + 1;
 			} else if (ball.y >= Game.height+ball.h) {
 				// TODO: You lose!
 				ball.vx = 0;
@@ -122,6 +133,8 @@ function PlayScene() {
 
 		speed: 500,
 	};
+	this.paddle.w2 = this.paddle.w/2;
+	this.paddle.h2 = this.paddle.h/2;
 	this.updatePaddle = function(deltaTime, paddle) {
 		if (Game.keysPressed[37]) { // LEFT
 			paddle.x -= deltaTime * paddle.speed;
