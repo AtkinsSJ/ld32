@@ -13,10 +13,14 @@ var Game = {
 	width: canvas.width,
 	height: canvas.height,
 	keysPressed: {},
+	oldKeysPressed: {},
 	scene: new MenuScene(),
 	images: {},
 	sounds: {},
 };
+function wasKeyJustPressed(keycode) {
+	return Game.keysPressed[keycode] && !Game.oldKeysPressed[keycode];
+}
 
 // Keyboard handling
 window.onkeydown = function(e) {
@@ -51,7 +55,7 @@ function MenuScene() {
 function PlayScene() {
 	this.update = function(deltaTime) {
 
-		if (Game.keysPressed[32] && !this.ball.launched) { // SPACE / Fire
+		if (wasKeyJustPressed(32) && !this.ball.launched) { // SPACE / Fire
 			// Launch the ball!
 			this.ball.vy = -200;
 			this.ball.vx = (Math.random() > 0.5) ? 200 : -200;
@@ -129,6 +133,14 @@ function main(frameTimestamp) {
 	Game.lastTimestamp = frameTimestamp;
 
 	Game.scene.update(deltaTime);
+
+	// Regenerate oldKeysPressed
+	for (var key in Game.oldKeysPressed) {
+		delete Game.oldKeysPressed[key];
+	}
+	for (var key in Game.keysPressed) {
+		Game.oldKeysPressed[key] = true;
+	}
 }
 
 function start() {
