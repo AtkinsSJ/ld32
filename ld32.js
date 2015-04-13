@@ -96,9 +96,11 @@ function PlayScene() {
 			if (ball.y <= ball.h/2) {
 				ball.vy = -ball.vy;
 				ball.y = ball.h/2 + 1;
-			} else if (ball.y >= Game.height-ball.h/2) {
-				ball.vy = -ball.vy;
-				ball.y = Game.height-ball.h/2 -1;
+			} else if (ball.y >= Game.height+ball.h) {
+				// TODO: You lose!
+				ball.vx = 0;
+				ball.vy = 0;
+				ball.launched = false;
 			}
 
 		} else {
