@@ -22,7 +22,6 @@ var Game = {
 window.onkeydown = function(e) {
 	e = e || window.event;
 	Game.keysPressed[e.keyCode] = true;
-	console.log("Pressed key", Game.keysPressed);
 	e.preventDefault();
 };
 window.onkeyup = function(e) {
@@ -51,7 +50,8 @@ function MenuScene() {
 
 function PlayScene() {
 	this.update = function(deltaTime) {
-		this.updateBall(deltaTime);
+		this.updatePaddle(deltaTime, this.paddle);
+		this.updateBall(deltaTime, this.ball);
 	};
 
 	this.ball = {
@@ -65,12 +65,39 @@ function PlayScene() {
 		vx: 0,
 		vy: 0,
 	};
-	this.updateBall = function(deltaTime) {
-		this.ball.x += this.ball.vx;
-		this.ball.y += this.ball.vy;
+	this.updateBall = function(deltaTime, ball) {
+		ball.x += ball.vx;
+		ball.y += ball.vy;
 
-		Game.context2d.drawImage(this.ball.image, this.ball.x - this.ball.w/2, this.ball.y - this.ball.h/2);
-	}
+		Game.context2d.drawImage(ball.image, ball.x - ball.w/2, ball.y - ball.h/2);
+	};
+
+	this.paddle = {
+		image: Game.images["paddle"],
+
+		x: Game.width/2,
+		y: Game.height-16,
+		w: 64,
+		h: 16,
+
+		speed: 300,
+	};
+	this.updatePaddle = function(deltaTime, paddle) {
+		if (Game.keysPressed[37]) { // LEFT
+			paddle.x -= deltaTime * paddle.speed;
+			if (paddle.x < paddle.w/2) {
+				paddle.x = paddle.w/2;
+			}
+		} else if (Game.keysPressed[39]) { // RIGHT
+			paddle.x += deltaTime * paddle.speed;
+			if (paddle.x > Game.width - paddle.w/2) {
+				paddle.x = Game.width - paddle.w/2;
+			}
+		}
+
+		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
+	};
+
 }
 
 // Run!
@@ -91,11 +118,12 @@ function main(frameTimestamp) {
 function start() {
 	// Load things!
 	var imagesToLoad = [
-		"ball"
+		"ball",
+		"paddle",
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
-		"jump"
+		"jump",
 	];
 	var soundsLoaded = 0;
 
