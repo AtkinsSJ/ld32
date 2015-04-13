@@ -50,12 +50,23 @@ function MenuScene() {
 
 function PlayScene() {
 	this.update = function(deltaTime) {
+
+		if (Game.keysPressed[32] && !this.ball.launched) { // SPACE / Fire
+			// Launch the ball!
+			this.ball.vy = -200;
+			this.ball.vx = (Math.random() > 0.5) ? 200 : -200;
+			this.ball.launched = true;
+
+			Game.sounds["jump"].play();
+		}
+
 		this.updatePaddle(deltaTime, this.paddle);
 		this.updateBall(deltaTime, this.ball);
 	};
 
 	this.ball = {
 		image: Game.images["ball"],
+		launched: false,
 
 		x: Game.width/2,
 		y: Game.height/2,
@@ -66,8 +77,14 @@ function PlayScene() {
 		vy: 0,
 	};
 	this.updateBall = function(deltaTime, ball) {
-		ball.x += ball.vx;
-		ball.y += ball.vy;
+		if (ball.launched) {
+			ball.x += ball.vx * deltaTime;
+			ball.y += ball.vy * deltaTime;
+		} else {
+			// Snap to the paddle!
+			ball.x = this.paddle.x;
+			ball.y = this.paddle.y - ball.h;
+		}
 
 		Game.context2d.drawImage(ball.image, ball.x - ball.w/2, ball.y - ball.h/2);
 	};
@@ -80,7 +97,7 @@ function PlayScene() {
 		w: 64,
 		h: 16,
 
-		speed: 300,
+		speed: 500,
 	};
 	this.updatePaddle = function(deltaTime, paddle) {
 		if (Game.keysPressed[37]) { // LEFT
@@ -97,7 +114,6 @@ function PlayScene() {
 
 		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
 	};
-
 }
 
 // Run!
