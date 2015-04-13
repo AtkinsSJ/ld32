@@ -50,17 +50,27 @@ function MenuScene() {
 }
 
 function PlayScene() {
-	this.sprite = {x: Game.width/2, y: Game.height/2};
-	this.time = 0;
 	this.update = function(deltaTime) {
-		this.time += deltaTime;
-		this.sprite.x += deltaTime * 200;
-		if (this.sprite.x > Game.width) {
-			this.sprite.x = 0;
-		}
-		this.sprite.y = (Game.height/2) + Math.sin(this.time * 5) * 50;
-		Game.context2d.drawImage(Game.images["test"], this.sprite.x, this.sprite.y);
+		this.updateBall(deltaTime);
 	};
+
+	this.ball = {
+		image: Game.images["ball"],
+
+		x: Game.width/2,
+		y: Game.height/2,
+		w: 16,
+		h: 16,
+
+		vx: 0,
+		vy: 0,
+	};
+	this.updateBall = function(deltaTime) {
+		this.ball.x += this.ball.vx;
+		this.ball.y += this.ball.vy;
+
+		Game.context2d.drawImage(this.ball.image, this.ball.x - this.ball.w/2, this.ball.y - this.ball.h/2);
+	}
 }
 
 // Run!
@@ -81,7 +91,7 @@ function main(frameTimestamp) {
 function start() {
 	// Load things!
 	var imagesToLoad = [
-		"test"
+		"ball"
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
