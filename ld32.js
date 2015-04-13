@@ -7,6 +7,8 @@
 var canvas = document.getElementById("canvas");
 
 var Game = {
+	MAX_FRAME_TIME: 1000/30,
+
 	context2d: canvas.getContext("2d"),
 	width: canvas.width,
 	height: canvas.height,
@@ -29,7 +31,7 @@ window.onkeyup = function(e) {
 };
 
 function MenuScene() {
-	this.update = function() {
+	this.update = function(deltaTime) {
 
 		// Go to play scene
 		if (Game.keysPressed[32]) {
@@ -48,18 +50,32 @@ function MenuScene() {
 }
 
 function PlayScene() {
-	this.update = function() {
-		Game.context2d.drawImage(Game.images["test"], 100, 100);
+	this.sprite = {x: Game.width/2, y: Game.height/2};
+	this.time = 0;
+	this.update = function(deltaTime) {
+		this.time += deltaTime;
+		this.sprite.x += deltaTime * 200;
+		if (this.sprite.x > Game.width) {
+			this.sprite.x = 0;
+		}
+		this.sprite.y = (Game.height/2) + Math.sin(this.time * 5) * 50;
+		Game.context2d.drawImage(Game.images["test"], this.sprite.x, this.sprite.y);
 	};
 }
 
 // Run!
-function main() {
+function main(frameTimestamp) {
 	window.requestAnimationFrame(main);
 
 	Game.context2d.clearRect(0,0, Game.width,Game.height);
 
-	Game.scene.update();
+	var deltaTime = (frameTimestamp - Game.lastTimestamp) / 1000;
+	if (deltaTime > Game.MAX_FRAME_TIME) {
+		deltaTime = Game.MAX_FRAME_TIME;
+	}
+	Game.lastTimestamp = frameTimestamp;
+
+	Game.scene.update(deltaTime);
 }
 
 function start() {
@@ -78,7 +94,7 @@ function start() {
 			&&(soundsLoaded >= soundsToLoad.length) ) {
 			// Done!
 			console.log("Finished loading assets!");
-			main();
+			window.requestAnimationFrame(main);
 		}
 	}
 
