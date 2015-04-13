@@ -66,6 +66,7 @@ function PlayScene() {
 
 		this.updatePaddle(deltaTime, this.paddle);
 		this.updateBall(deltaTime, this.ball);
+		this.updateBricks(deltaTime);
 	};
 
 	this.ball = {
@@ -95,6 +96,12 @@ function PlayScene() {
 				ball.vy = -ball.vy;
 				ball.y = this.paddle.y - this.paddle.h2 - ball.h2 - 1;
 			}
+
+			// Bounce off bricks!
+			for (var i = 0; i < this.bricks.length; i++) {
+				// Continue work here! :D
+				this.bricks[i]
+			};
 
 			// Bounce off the screen edges!
 			if (ball.x <= ball.w2) {
@@ -150,6 +157,31 @@ function PlayScene() {
 
 		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
 	};
+
+	var BRICK_W = 32;
+	var BRICK_H = 16;
+	function Brick(x,y) {
+		this.x = x;
+		this.y = y;
+		this.w = BRICK_W;
+		this.h = BRICK_H;
+		this.w2 = this.w/2;
+		this.h2 = this.h/2;
+		this.image = Game.images["brick"];
+	}
+	this.bricks = [];
+	for (var x=0; x<18; x++) {
+		for (var y=0; y<5; y++) {
+			this.bricks.push(new Brick((x+1.5) * BRICK_W, (y + 2.5) * BRICK_H));
+		}
+	}
+	this.updateBricks = function(deltaTime) {
+		for (var i=0; i<this.bricks.length; i++) {
+			var brick = this.bricks[i];
+
+			Game.context2d.drawImage(brick.image, brick.x - brick.w/2, brick.y - brick.h/2);
+		}
+	};
 }
 
 // Run!
@@ -179,6 +211,7 @@ function start() {
 	// Load things!
 	var imagesToLoad = [
 		"ball",
+		"brick",
 		"paddle",
 	];
 	var imagesLoaded = 0;
