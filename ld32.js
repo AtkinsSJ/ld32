@@ -84,6 +84,23 @@ function PlayScene() {
 		if (ball.launched) {
 			ball.x += ball.vx * deltaTime;
 			ball.y += ball.vy * deltaTime;
+
+			// Bounce off the screen edges!
+			if (ball.x <= ball.w/2) {
+				ball.vx = -ball.vx;
+				ball.x = ball.w/2 + 1;
+			} else if (ball.x >= Game.width-ball.w/2) {
+				ball.vx = -ball.vx;
+				ball.x = Game.width-ball.w/2 -1;
+			}
+			if (ball.y <= ball.h/2) {
+				ball.vy = -ball.vy;
+				ball.y = ball.h/2 + 1;
+			} else if (ball.y >= Game.height-ball.h/2) {
+				ball.vy = -ball.vy;
+				ball.y = Game.height-ball.h/2 -1;
+			}
+
 		} else {
 			// Snap to the paddle!
 			ball.x = this.paddle.x;
