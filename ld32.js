@@ -119,21 +119,19 @@ function PlayScene() {
 					if (oldX < brickRect.minX) {
 						// Bounce off left
 						ball.vx = -ball.vx;
-						ball.x = brickRect.minX;
+						ball.x = brickRect.minX - 1;
 					} else if (oldX > brickRect.maxX) {
 						// Bounce off right
 						ball.vx = -ball.vx;
-						ball.x = brickRect.maxX;
-					}
-
-					if (oldY < brickRect.minY) {
+						ball.x = brickRect.maxX + 1;
+					} else if (oldY < brickRect.minY) {
 						// Bounce off top
 						ball.vy = -ball.vy;
-						ball.y = brickRect.minY;
+						ball.y = brickRect.minY - 1;
 					} else if (oldY > brickRect.maxY) {
 						// Bounce off bottom
 						ball.vy = -ball.vy;
-						ball.y = brickRect.maxY;
+						ball.y = brickRect.maxY + 1;
 					}
 				}
 			};
