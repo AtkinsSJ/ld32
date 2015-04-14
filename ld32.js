@@ -52,6 +52,43 @@ function MenuScene() {
 	};
 }
 
+// Returns whether the collision happened!
+function bounceOff(a,b) {
+	var bRect = {
+		minX: b.x - b.w2 - a.w2,
+		maxX: b.x + b.w2 + a.w2,
+		minY: b.y - b.h2 - a.h2,
+		maxY: b.y + b.h2 + a.h2,
+	};
+
+	if ((a.x >= bRect.minX) && (a.x <= bRect.maxX)
+		&& (a.y >= bRect.minY) && (a.y <= bRect.maxY)) {
+
+		// Look at old position, and use that to judge which side we just entered.
+		if (a.oldX < bRect.minX) {
+			// Bounce off left
+			a.vx = -a.vx;
+			a.x = bRect.minX - 1;
+		} else if (a.oldX > bRect.maxX) {
+			// Bounce off right
+			a.vx = -a.vx;
+			a.x = bRect.maxX + 1;
+		} else if (a.oldY < bRect.minY) {
+			// Bounce off top
+			a.vy = -a.vy;
+			a.y = bRect.minY - 1;
+		} else if (a.oldY > bRect.maxY) {
+			// Bounce off bottom
+			a.vy = -a.vy;
+			a.y = bRect.maxY + 1;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 function PlayScene() {
 	this.update = function(deltaTime) {
 
@@ -85,54 +122,19 @@ function PlayScene() {
 	this.ball.h2 = this.ball.h/2;
 	this.updateBall = function(deltaTime, ball) {
 		if (ball.launched) {
-			var oldX = ball.x;
-			var oldY = ball.y;
+			ball.oldX = ball.x;
+			ball.oldY = ball.y;
 			ball.x += ball.vx * deltaTime;
 			ball.y += ball.vy * deltaTime;
 
 			// Bounce off the paddle!
-			if ((ball.y + ball.h2 >= this.paddle.y - this.paddle.h2)
-				&& (ball.x + ball.w2 >= this.paddle.x - this.paddle.w2)
-				&& (ball.x - ball.w2 <= this.paddle.x + this.paddle.w2)) {
-
-				ball.vy = -ball.vy;
-				ball.y = this.paddle.y - this.paddle.h2 - ball.h2 - 1;
-			}
+			bounceOff(ball, this.paddle);
 
 			// Bounce off bricks!
 			for (var i = 0; i < this.bricks.length; i++) {
-				// Continue work here! :D
 				var brick = this.bricks[i];
-				var brickRect = {
-					minX: brick.x - brick.w2 - ball.w2,
-					maxX: brick.x + brick.w2 + ball.w2,
-					minY: brick.y - brick.h2 - ball.h2,
-					maxY: brick.y + brick.h2 + ball.h2,
-				};
-
-				if ((ball.x >= brickRect.minX) && (ball.x <= brickRect.maxX)
-					&& (ball.y >= brickRect.minY) && (ball.y <= brickRect.maxY)) {
-					// We collided!
+				if (bounceOff(ball, brick)) {
 					brick.alive = false;
-
-					// Look at old position, and use that to judge which side we just entered.
-					if (oldX < brickRect.minX) {
-						// Bounce off left
-						ball.vx = -ball.vx;
-						ball.x = brickRect.minX - 1;
-					} else if (oldX > brickRect.maxX) {
-						// Bounce off right
-						ball.vx = -ball.vx;
-						ball.x = brickRect.maxX + 1;
-					} else if (oldY < brickRect.minY) {
-						// Bounce off top
-						ball.vy = -ball.vy;
-						ball.y = brickRect.minY - 1;
-					} else if (oldY > brickRect.maxY) {
-						// Bounce off bottom
-						ball.vy = -ball.vy;
-						ball.y = brickRect.maxY + 1;
-					}
 				}
 			};
 
