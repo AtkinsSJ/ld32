@@ -39,7 +39,7 @@ function MenuScene() {
 		// Go to play scene
 		if (Game.keysPressed[32]) {
 			Game.scene = new PlayScene();
-			Game.sounds["jump"].play();
+			Game.sounds["Start"].play();
 		}
 
 		// Render text
@@ -98,7 +98,7 @@ function PlayScene() {
 			this.ball.vx = (Math.random() > 0.5) ? 200 : -200;
 			this.ball.launched = true;
 
-			Game.sounds["jump"].play();
+			//Game.sounds["jump"].play();
 		}
 
 		this.updatePaddle(deltaTime, this.paddle);
@@ -129,13 +129,16 @@ function PlayScene() {
 			ball.y += ball.vy * deltaTime;
 
 			// Bounce off the paddle!
-			bounceOff(ball, this.paddle);
+			if (bounceOff(ball, this.paddle)) {
+				Game.sounds["Bounce-paddle"].play();
+			}
 
 			// Bounce off bricks!
 			for (var i = 0; i < this.bricks.length; i++) {
 				var brick = this.bricks[i];
 				if (bounceOff(ball, brick)) {
 					brick.alive = false;
+					Game.sounds["Bounce-brick"].play();
 				}
 			};
 
@@ -143,18 +146,22 @@ function PlayScene() {
 			if (ball.x <= ball.w2) {
 				ball.vx = -ball.vx;
 				ball.x = ball.w2 + 1;
+				Game.sounds["Bounce-wall"].play();
 			} else if (ball.x >= Game.width-ball.w2) {
 				ball.vx = -ball.vx;
 				ball.x = Game.width-ball.w2 -1;
+				Game.sounds["Bounce-wall"].play();
 			}
 			if (ball.y <= ball.h2) {
 				ball.vy = -ball.vy;
 				ball.y = ball.h2 + 1;
+				Game.sounds["Bounce-wall"].play();
 			} else if (ball.y >= Game.height+ball.h) {
 				// TODO: You lose!
 				ball.vx = 0;
 				ball.vy = 0;
 				ball.launched = false;
+				Game.sounds["Lose"].play();
 			}
 
 		} else {
@@ -267,7 +274,12 @@ function start() {
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
-		"jump",
+		"Bounce-brick",
+		"Bounce-paddle",
+		"Bounce-wall",
+		"Build-brick",
+		"Lose",
+		"Start",
 	];
 	var soundsLoaded = 0;
 
