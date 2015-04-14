@@ -3,5 +3,4 @@ LD32
 
 For now, just a basic framework for having multiple scenes with a game loop.
 
-Audio conversion:
-> avconv -i jump.wav -map 0:a jump.ogg jump.mp3
+Audio conversion: use convert-audio.sh
