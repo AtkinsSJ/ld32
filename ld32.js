@@ -193,8 +193,8 @@ function PlayScene() {
 		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
 	};
 
-	var BRICK_W = 32;
-	var BRICK_H = 16;
+	var BRICK_W = 64;
+	var BRICK_H = 32;
 	function Brick(x,y) {
 		this.x = x;
 		this.y = y;
@@ -206,8 +206,8 @@ function PlayScene() {
 		this.alive = true;
 	}
 	this.bricks = [];
-	for (var x=0; x<18; x++) {
-		for (var y=0; y<5; y++) {
+	for (var x=0; x<8; x++) {
+		for (var y=0; y<3; y++) {
 			this.bricks.push(new Brick((x+1.5) * BRICK_W, (y + 2.5) * BRICK_H));
 		}
 	}
@@ -217,10 +217,17 @@ function PlayScene() {
 			return brick.alive;
 		});
 
-		for (var i=0; i<this.bricks.length; i++) {
-			var brick = this.bricks[i];
+		if (this.bricks.length == 0) {
+			// You win! :D
+			Game.context2d.fillText("YOU WIN!", Game.width/2, 20);
+			Game.context2d.fillText("Amazing.", Game.width/2, 50);
 
-			Game.context2d.drawImage(brick.image, brick.x - brick.w/2, brick.y - brick.h/2);
+		} else {
+			for (var i=0; i<this.bricks.length; i++) {
+				var brick = this.bricks[i];
+
+				Game.context2d.drawImage(brick.image, brick.x - brick.w/2, brick.y - brick.h/2);
+			}
 		}
 	};
 }
