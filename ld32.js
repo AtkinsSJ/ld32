@@ -85,6 +85,8 @@ function PlayScene() {
 	this.ball.h2 = this.ball.h/2;
 	this.updateBall = function(deltaTime, ball) {
 		if (ball.launched) {
+			var oldX = ball.x;
+			var oldY = ball.y;
 			ball.x += ball.vx * deltaTime;
 			ball.y += ball.vy * deltaTime;
 
@@ -100,7 +102,40 @@ function PlayScene() {
 			// Bounce off bricks!
 			for (var i = 0; i < this.bricks.length; i++) {
 				// Continue work here! :D
-				this.bricks[i]
+				var brick = this.bricks[i];
+				var brickRect = {
+					minX: brick.x - brick.w2 - ball.w2,
+					maxX: brick.x + brick.w2 + ball.w2,
+					minY: brick.y - brick.h2 - ball.h2,
+					maxY: brick.y + brick.h2 + ball.h2,
+				};
+
+				if ((ball.x >= brickRect.minX) && (ball.x <= brickRect.maxX)
+					&& (ball.y >= brickRect.minY) && (ball.y <= brickRect.maxY)) {
+					// We collided!
+					brick.alive = false;
+
+					// Look at old position, and use that to judge which side we just entered.
+					if (oldX < brickRect.minX) {
+						// Bounce off left
+						ball.vx = -ball.vx;
+						ball.x = brickRect.minX;
+					} else if (oldX > brickRect.maxX) {
+						// Bounce off right
+						ball.vx = -ball.vx;
+						ball.x = brickRect.maxX;
+					}
+
+					if (oldY < brickRect.minY) {
+						// Bounce off top
+						ball.vy = -ball.vy;
+						ball.y = brickRect.minY;
+					} else if (oldY > brickRect.maxY) {
+						// Bounce off bottom
+						ball.vy = -ball.vy;
+						ball.y = brickRect.maxY;
+					}
+				}
 			};
 
 			// Bounce off the screen edges!
@@ -168,6 +203,7 @@ function PlayScene() {
 		this.w2 = this.w/2;
 		this.h2 = this.h/2;
 		this.image = Game.images["brick"];
+		this.alive = true;
 	}
 	this.bricks = [];
 	for (var x=0; x<18; x++) {
@@ -176,6 +212,11 @@ function PlayScene() {
 		}
 	}
 	this.updateBricks = function(deltaTime) {
+
+		this.bricks = this.bricks.filter(function(brick){
+			return brick.alive;
+		});
+
 		for (var i=0; i<this.bricks.length; i++) {
 			var brick = this.bricks[i];
 
