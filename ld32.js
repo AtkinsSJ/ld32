@@ -183,20 +183,32 @@ function PlayScene() {
 		this.w2 = this.w/2;
 		this.h2 = this.h/2;
 
-		this.speed = 500;
+		this.v = 0;
+		this.maxSpeed = 500;
+		this.acceleration = 2500;
 	}
 	this.paddle = new Paddle();
 	this.updatePaddle = function(deltaTime, paddle) {
+		paddle.v -= (deltaTime * paddle.v * 7);
 		if (Game.keysPressed[37]) { // LEFT
-			paddle.x -= deltaTime * paddle.speed;
-			if (paddle.x < paddle.w/2) {
-				paddle.x = paddle.w/2;
-			}
+			paddle.v -= deltaTime * paddle.acceleration;
 		} else if (Game.keysPressed[39]) { // RIGHT
-			paddle.x += deltaTime * paddle.speed;
-			if (paddle.x > Game.width - paddle.w/2) {
-				paddle.x = Game.width - paddle.w/2;
-			}
+			paddle.v += deltaTime * paddle.acceleration;
+		}
+
+		if (paddle.v > paddle.maxSpeed) {
+			paddle.v = paddle.maxSpeed;
+		} else if (paddle.v < -paddle.maxSpeed) {
+			paddle.v = -paddle.maxSpeed;
+		}
+
+		paddle.x += deltaTime * paddle.v;
+		if (paddle.x < paddle.w/2) {
+			paddle.x = paddle.w/2;
+			paddle.v = 0;
+		} else if (paddle.x > Game.width - paddle.w/2) {
+			paddle.x = Game.width - paddle.w/2;
+			paddle.v = 0;
 		}
 
 		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
