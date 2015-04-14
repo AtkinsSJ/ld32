@@ -106,20 +106,21 @@ function PlayScene() {
 		this.updateBricks(deltaTime);
 	};
 
-	this.ball = {
-		image: Game.images["ball"],
-		launched: false,
+	function Ball() {
+		this.image = Game.images["ball"];
+		this.launched = false;
 
-		x: Game.width/2,
-		y: Game.height/2,
-		w: 16,
-		h: 16,
+		this.x = Game.width/2;
+		this.y = Game.height/2;
+		this.w = this.image.width;
+		this.h = this.image.height;
+		this.w2 = this.w/2;
+		this.h2 = this.h/2;
 
-		vx: 0,
-		vy: 0,
-	};
-	this.ball.w2 = this.ball.w/2;
-	this.ball.h2 = this.ball.h/2;
+		this.vx = 0;
+		this.vy = 0;
+	}
+	this.ball = new Ball();
 	this.updateBall = function(deltaTime, ball) {
 		if (ball.launched) {
 			ball.oldX = ball.x;
@@ -165,18 +166,19 @@ function PlayScene() {
 		Game.context2d.drawImage(ball.image, ball.x - ball.w/2, ball.y - ball.h/2);
 	};
 
-	this.paddle = {
-		image: Game.images["paddle"],
+	function Paddle() {
+		this.image = Game.images["paddle"];
 
-		x: Game.width/2,
-		y: Game.height-16,
-		w: 64,
-		h: 16,
+		this.x = Game.width/2;
+		this.y = Game.height-16;
+		this.w = this.image.width;
+		this.h = this.image.height;
+		this.w2 = this.w/2;
+		this.h2 = this.h/2;
 
-		speed: 500,
-	};
-	this.paddle.w2 = this.paddle.w/2;
-	this.paddle.h2 = this.paddle.h/2;
+		this.speed = 500;
+	}
+	this.paddle = new Paddle();
 	this.updatePaddle = function(deltaTime, paddle) {
 		if (Game.keysPressed[37]) { // LEFT
 			paddle.x -= deltaTime * paddle.speed;
@@ -193,8 +195,9 @@ function PlayScene() {
 		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
 	};
 
-	var BRICK_W = 64;
-	var BRICK_H = 32;
+	var brickImage = Game.images["brick"];
+	var BRICK_W = brickImage.width;
+	var BRICK_H = brickImage.height;
 	function Brick(x,y) {
 		this.x = x;
 		this.y = y;
@@ -202,7 +205,7 @@ function PlayScene() {
 		this.h = BRICK_H;
 		this.w2 = this.w/2;
 		this.h2 = this.h/2;
-		this.image = Game.images["brick"];
+		this.image = brickImage;
 		this.alive = true;
 	}
 	this.bricks = [];
