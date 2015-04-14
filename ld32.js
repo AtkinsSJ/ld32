@@ -90,15 +90,52 @@ function bounceOff(a,b) {
 }
 
 function PlayScene() {
+
+	this.startRound = function() {
+		// Hide ball
+		// Set-up brick-creation
+		this.brickPlacingX = 0;
+		this.brickPlacingY = 0;
+		this.brickPlacingDelay = 0.3;
+		this.brickPlacingTimer = 0;
+		this.isStartingRound = true;
+	};
+	this.startRound();
+
 	this.update = function(deltaTime) {
 
-		if (wasKeyJustPressed(32) && !this.ball.launched) { // SPACE / Fire
-			// Launch the ball!
-			this.ball.vy = -200;
-			this.ball.vx = (Math.random() > 0.5) ? 200 : -200;
-			this.ball.launched = true;
+		if (this.isStartingRound) {
+			this.brickPlacingTimer += deltaTime;
+			if (this.brickPlacingTimer > this.brickPlacingDelay) {
+				this.brickPlacingTimer -= this.brickPlacingDelay;
+				// Place a brick!
+				this.bricks.push(new Brick((this.brickPlacingX+1.5) * BRICK_W,
+											(this.brickPlacingY + 2.5) * BRICK_H));
+				Game.sounds["Build-brick"].play();
+				this.brickPlacingX++;
 
-			//Game.sounds["jump"].play();
+				if (this.brickPlacingX >= this.bricksX) {
+					this.brickPlacingX = 0;
+					this.brickPlacingY++;
+
+					if (this.brickPlacingY >= this.bricksY) {
+						// We're done! :D
+						this.ball.disabled = false;
+						this.isStartingRound = false;
+					}
+				}
+			}
+
+		} else {
+
+			if (wasKeyJustPressed(32) && !this.ball.launched) { // SPACE / Fire
+				// Launch the ball!
+				this.ball.vy = -200;
+				this.ball.vx = (Math.random() > 0.5) ? 200 : -200;
+				this.ball.launched = true;
+
+				//Game.sounds["jump"].play();
+			}
 		}
 
 		this.updatePaddle(deltaTime, this.paddle);
@@ -109,6 +146,7 @@ function PlayScene() {
 	function Ball() {
 		this.image = Game.images["ball"];
 		this.launched = false;
+		this.disabled = true;
 
 		this.x = Game.width/2;
 		this.y = Game.height/2;
@@ -122,6 +160,8 @@ function PlayScene() {
 	}
 	this.ball = new Ball();
 	this.updateBall = function(deltaTime, ball) {
+		if (ball.disabled) return;
+
 		if (ball.launched) {
 			ball.oldX = ball.x;
 			ball.oldY = ball.y;
@@ -217,6 +257,8 @@ function PlayScene() {
 	var brickImage = Game.images["brick"];
 	var BRICK_W = brickImage.width;
 	var BRICK_H = brickImage.height;
+	this.bricksX = 8;
+	this.bricksY = 3;
 	function Brick(x,y) {
 		this.x = x;
 		this.y = y;
@@ -228,11 +270,11 @@ function PlayScene() {
 		this.alive = true;
 	}
 	this.bricks = [];
-	for (var x=0; x<8; x++) {
-		for (var y=0; y<3; y++) {
-			this.bricks.push(new Brick((x+1.5) * BRICK_W, (y + 2.5) * BRICK_H));
-		}
-	}
+	// for (var x=0; x<this.bricksX; x++) {
+	// 	for (var y=0; y<this.bricksY; y++) {
+	// 		this.bricks.push(new Brick((x+1.5) * BRICK_W, (y + 2.5) * BRICK_H));
+	// 	}
+	// }
 	this.updateBricks = function(deltaTime) {
 
 		this.bricks = this.bricks.filter(function(brick){
