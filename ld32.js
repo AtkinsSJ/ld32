@@ -97,7 +97,7 @@ function PlayScene() {
 		this.brickPlacingX = 0;
 		this.brickPlacingY = 0;
 		this.brickPlacingDelay = 0.3;
-		this.brickPlacingTimer = 0;
+		this.brickPlacingTimer = -1;
 		this.isStartingRound = true;
 	};
 	this.startRound();
@@ -270,18 +270,13 @@ function PlayScene() {
 		this.alive = true;
 	}
 	this.bricks = [];
-	// for (var x=0; x<this.bricksX; x++) {
-	// 	for (var y=0; y<this.bricksY; y++) {
-	// 		this.bricks.push(new Brick((x+1.5) * BRICK_W, (y + 2.5) * BRICK_H));
-	// 	}
-	// }
 	this.updateBricks = function(deltaTime) {
 
 		this.bricks = this.bricks.filter(function(brick){
 			return brick.alive;
 		});
 
-		if (this.bricks.length == 0) {
+		if (!this.isStartingRound && this.bricks.length == 0) {
 			// You win! :D
 			Game.context2d.fillText("YOU WIN!", Game.width/2, 20);
 			Game.context2d.fillText("Amazing.", Game.width/2, 50);
