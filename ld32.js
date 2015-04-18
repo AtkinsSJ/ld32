@@ -119,8 +119,10 @@ function MenuScene() {
 		}
 
 		// Render text
-		Game.context2d.fillText("LD32 game!", Game.width/2, 20);
-		Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
+		Game.context2d.fillText("Food Fight!", Game.width/2, 20);
+		Game.context2d.fillText("Made for Ludum Dare 32", Game.width/2, 50);
+		Game.context2d.fillText("By Sam 'AtkinsSJ' Atkins", Game.width/2, 80);
+		Game.context2d.fillText("Press Space to play!", Game.width/2, 200);
 	};
 
 	this.onClick = function(x,y) { };
