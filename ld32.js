@@ -14,7 +14,7 @@ var Game = {
 	height: canvas.height,
 	keysPressed: {},
 	oldKeysPressed: {},
-	mouse: {x:0, y:0},
+	mouse: {x:0, y:0, down:false},
 	scene: new MenuScene(),
 	images: {},
 	sounds: {},
@@ -35,17 +35,29 @@ window.onkeyup = function(e) {
 	delete Game.keysPressed[e.keyCode];
 };
 
-canvas.onclick = function(e) {
-	e = e || window.event;
-	var clickX = e.clientX - canvas.offsetLeft + window.scrollX;
-	var clickY = e.clientY - canvas.offsetTop + window.scrollY;
-	Game.scene.onClick(clickX, clickY);
-};
-// canvas.onmousemove = function(e) {
+// canvas.onclick = function(e) {
 // 	e = e || window.event;
-// 	Game.mouse.x = e.clientX - canvas.offsetLeft + window.scrollX;
-// 	Game.mouse.y = e.clientY - canvas.offsetTop + window.scrollY;
+// 	var clickX = e.clientX - canvas.offsetLeft + window.scrollX;
+// 	var clickY = e.clientY - canvas.offsetTop + window.scrollY;
+// 	Game.scene.onClick(clickX, clickY);
 // };
+window.onmousedown = function(e) {
+	e = e || window.event;
+	if (e.buttons & 1) {
+		Game.mouse.down = true;
+	}
+};
+window.onmouseup = function(e) {
+	e = e || window.event;
+	if (e.buttons & 1) {
+		Game.mouse.down = false;
+	}
+};
+canvas.onmousemove = function(e) {
+	e = e || window.event;
+	Game.mouse.x = e.clientX - canvas.offsetLeft + window.scrollX;
+	Game.mouse.y = e.clientY - canvas.offsetTop + window.scrollY;
+};
 
 KEY_LEFT = 37;
 KEY_RIGHT = 39;
@@ -181,6 +193,8 @@ function PlayScene() {
 		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true);
 		this.speed = 200;
 		this.health = 100;
+		this.shootDelay = 0.2;
+		this.shootCooldown = 0;
 
 		this.update = function(deltaTime) {
 			// Player!
@@ -198,13 +212,22 @@ function PlayScene() {
 			}
 
 			this.moveAroundMap(xDiff, yDiff);
+
+			if (this.shootCooldown >= 0) {
+				this.shootCooldown -= deltaTime;
+			}
+			if (Game.mouse.down) {
+				this.shootAt(this.playScene.getMousePosition());
+			}
 		};
 
-		this.shootAt = function(targetX, targetY) {
+		this.shootAt = function(target) {
+			if (this.shootCooldown > 0) return;
+
 			var cx = this.x + 8,
 				cy = this.y + 8;
-			var tx = targetX - 2,
-				ty = targetY - 2;
+			var tx = target.x - 2,
+				ty = target.y - 2;
 			var diff = {x: tx - cx,
 						y: ty - cy};
 			diff = normalise(diff);
@@ -214,6 +237,8 @@ function PlayScene() {
 			this.playScene.entities.push(new Bullet(
 				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y, 5
 			));
+
+			this.shootCooldown = this.shootDelay;
 		};
 
 		this.takeDamage = function(damage) {
@@ -394,8 +419,9 @@ function PlayScene() {
 		}
 	};
 
-	this.onClick = function(x,y) {
-		this.player.shootAt(x + this.camera.x, y + this.camera.y);
+	this.getMousePosition = function() {
+		return {x: Game.mouse.x + this.camera.x,
+				y: Game.mouse.y + this.camera.y};
 	};
 
 	this.start();
