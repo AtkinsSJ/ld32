@@ -166,7 +166,7 @@ function PlayScene() {
 
 		this.camera = {
 			x: this.player.x,
-			y: this.player.y
+			y: this.player.y,
 		};
 	};
 
@@ -185,9 +185,15 @@ function PlayScene() {
 
 		// Draw flooring
 		var floorTile = Game.images["floor"];
-		for (var y = 0; y < this.tilesY; y++) {
-			for (var x = 0; x < this.tilesX; x++) {
-				Game.context2d.drawImage(floorTile, (x*floorTile.width) - this.camera.x, y*floorTile.height - this.camera.y);
+		var tilesAcross = (Game.width / floorTile.width) + 1;
+		var tilesDown = (Game.height / floorTile.height) + 1;
+		var startX = Math.floor(this.camera.x / floorTile.width);
+		var startY = Math.floor(this.camera.y / floorTile.height);
+		for (var y = 0; y < tilesDown; y++) {
+			for (var x = 0; x < tilesAcross; x++) {
+				Game.context2d.drawImage(floorTile,
+					(startX + x)*floorTile.width - this.camera.x,
+					(startY + y)*floorTile.height - this.camera.y);
 			};
 		};
 
@@ -195,7 +201,7 @@ function PlayScene() {
 		for (var i = 0; i < this.entities.length; i++) {
 			var entity = this.entities[i];
 			Game.context2d.drawImage(entity.image, entity.x - this.camera.x, entity.y - this.camera.y);
-		};
+		}
 	};
 
 	this.onClick = function(x,y) {
