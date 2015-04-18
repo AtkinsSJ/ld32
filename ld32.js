@@ -151,7 +151,7 @@ function PlayScene() {
 		this.solid = solid;
 		this.alive = true;
 
-		this.moveAroundMap = function(xDiff, yDiff) {
+		this.moveAroundMap = function(xDiff, yDiff, player) {
 			var oldX = this.x,
 				oldY = this.y;
 			this.x += xDiff;
@@ -163,6 +163,11 @@ function PlayScene() {
 				if (other.solid && (other != this)) {
 					// Don't walk through walls and creatures
 					if (overlaps(this, other)) {
+
+						if (other == player) {
+							// Damage the player!
+							other.takeDamage(this.damage);
+						}
 
 						var t = this.y;
 						this.y = oldY;
@@ -208,7 +213,18 @@ function PlayScene() {
 				// DEAD!
 				this.alive = false;
 			}
-		}
+		};
+
+		this.hasRoom = function() {
+			var entities = this.playScene.entities;
+			for (var i = 0; i < entities.length; i++) {
+				var other = entities[i];
+				if (other.solid && (other != this) && (other.team == TEAM_NONE) && overlaps(this, other)) {
+					return false;
+				}
+			}
+			return true;
+		};
 	}
 
 	function Player(playScene, x,y) {
@@ -376,7 +392,7 @@ function PlayScene() {
 		this.height *= scale;
 
 		this.update = function(deltaTime) {
-			if (distance(this, this.player) < 300) {
+			if (distance(this, this.player) < 700) {
 				var diff = {x: this.player.x - this.x,
 							y: this.player.y - this.y};
 				diff = normalise(diff);
@@ -384,7 +400,7 @@ function PlayScene() {
 				diff.x *= v;
 				diff.y *= v;
 
-				this.moveAroundMap(diff.x, diff.y);
+				this.moveAroundMap(diff.x, diff.y, player);
 			}
 		};
 
@@ -393,15 +409,27 @@ function PlayScene() {
 			if (this.health <= 0) {
 				// DEAD!
 				if (this.size > 1) {
-					// Spawn smaller mashes!
-					var newWidth = this.image.width * (this.size-1)/5;
-					this.playScene.entities.push(
-						new MonsterMash(this.playScene, this.x - newWidth*0.5, this.y, this.player, this.size - 1)
-					);
 
-					this.playScene.entities.push(
-						new MonsterMash(this.playScene, this.x + newWidth*0.5, this.y, this.player, this.size - 1)
-					);
+					// Spawn smaller mashes!
+					// Attempt to spawn 4, each of which will fail if there isn't room.
+					var w2 = this.width/2,
+						h2 = this.height/2;
+					var childW2 = this.image.width * (this.size-1)*0.1;
+					var childH2 = this.image.width * (this.size-1)*0.1;
+					var cx = this.x + this.width/2 - childW2,
+						cy = this.y + this.height/2 - childH2;
+					var positions = [
+						{x: cx - w2, y: cy},
+						{x: cx + w2, y: cy},
+						{x: cx, y: cy - h2},
+						{x: cx, y: cy + h2},
+					];
+					for (var i=0; i<positions.length; i++) {
+						var child = new MonsterMash(this.playScene, positions[i].x, positions[i].y, this.player, this.size - 1);
+						if (child.hasRoom()) {
+							this.playScene.entities.push(child);
+						}
+					}
 				}
 				this.alive = false;
 			}
@@ -457,10 +485,10 @@ function PlayScene() {
 			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,4,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,0,3,0,0,3,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,0,4,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,3,0,4,4,3,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,0,3,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
@@ -497,7 +525,7 @@ function PlayScene() {
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						this.entities.push(new Sprout(this, xx, yy, this.player));
+						// this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 					case 4: { // Monster Mash!
 						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
