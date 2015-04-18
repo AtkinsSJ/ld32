@@ -200,14 +200,18 @@ function PlayScene() {
 		};
 
 		this.shootAt = function(targetX, targetY) {
-			var diff = {x: targetX - this.x,
-						y: targetY - this.y};
+			var cx = this.x + 8,
+				cy = this.y + 8;
+			var tx = targetX - 2,
+				ty = targetY - 2;
+			var diff = {x: tx - cx,
+						y: ty - cy};
 			diff = normalise(diff);
 			diff.x *= 300;
 			diff.y *= 300;
 
 			this.playScene.entities.push(new Bullet(
-				this.playScene, this.x + 8, this.y + 8, Game.images["bullet"], this.team, diff.x, diff.y
+				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y
 			));
 		};
 	}
