@@ -27,7 +27,7 @@ window.onkeydown = function(e) {
 	e = e || window.event;
 	Game.keysPressed[e.keyCode] = true;
 	e.preventDefault();
-	// console.log("Just pressed ", e.keyCode);
+	console.log("Just pressed ", e.keyCode);
 };
 window.onkeyup = function(e) {
 	e = e || window.event;
@@ -38,6 +38,10 @@ KEY_LEFT = 37;
 KEY_RIGHT = 39;
 KEY_UP = 38;
 KEY_DOWN = 40;
+KEY_W = 87;
+KEY_A = 65;
+KEY_S = 83;
+KEY_D = 68;
 
 function clamp(value, min, max) {
 	if (value < min) return min;
@@ -75,14 +79,14 @@ function PlayScene() {
 
 		this.update = function(deltaTime, playScene) {
 			// Player!
-			if (Game.keysPressed[KEY_LEFT]) {
+			if (Game.keysPressed[KEY_LEFT] || Game.keysPressed[KEY_A]) {
 				this.x -= this.speed * deltaTime;
-			} else if (Game.keysPressed[KEY_RIGHT]) {
+			} else if (Game.keysPressed[KEY_RIGHT] || Game.keysPressed[KEY_D]) {
 				this.x += this.speed * deltaTime;
 			}
-			if (Game.keysPressed[KEY_UP]) {
+			if (Game.keysPressed[KEY_UP] || Game.keysPressed[KEY_W]) {
 				this.y -= this.speed * deltaTime;
-			} else if (Game.keysPressed[KEY_DOWN]) {
+			} else if (Game.keysPressed[KEY_DOWN] || Game.keysPressed[KEY_S]) {
 				this.y += this.speed * deltaTime;
 			}
 			this.x = clamp(this.x, 0, playScene.width-this.width);
