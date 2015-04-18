@@ -69,6 +69,7 @@ function PlayScene() {
 		navigator.getUserMedia({audio: true}, function(stream) {
 			var source = audioContext.createMediaStreamSource(stream);
 			source.connect(self.analyser);
+			window.audioSourceReference = source;
 
 			self.frequencyBufferLength = self.analyser.frequencyBinCount;
 			self.frequencyDataArray = new Uint8Array(self.frequencyBufferLength);
