@@ -73,6 +73,15 @@ function normalise(vector) {
 	return vector;
 }
 
+function overlaps(a,b) {
+	var minX = b.x - a.width,
+		maxX = b.x + b.width,
+		minY = b.y - a.height,
+		maxY = b.y + b.height;
+
+	return (a.x >= minX) && (a.x < maxX) && (a.y >= minY) && (a.y < maxY);
+}
+
 function MenuScene() {
 	this.update = function(deltaTime) {
 		Game.context2d.font = "20px sans-serif";
@@ -91,9 +100,7 @@ function MenuScene() {
 		Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
 	};
 
-	this.onClick = function(x,y) {
-		
-	};
+	this.onClick = function(x,y) { };
 }
 
 function PlayScene() {
@@ -139,7 +146,7 @@ function PlayScene() {
 			diff.y *= 300;
 
 			this.playScene.entities.push(new Bullet(
-				this.playScene, this.x, this.y, Game.images["bullet"], this.team, diff.x, diff.y
+				this.playScene, this.x + 8, this.y + 8, Game.images["bullet"], this.team, diff.x, diff.y
 			));
 		};
 	}
@@ -159,6 +166,17 @@ function PlayScene() {
 				this.alive = false;
 				return;
 			}
+
+			for (var i=0; i<this.playScene.entities.length; i++) {
+				var entity = this.playScene.entities[i];
+				if (entity.team == this.team) continue;
+				if (overlaps(this, entity)) {
+					// TODO: Actual damage from bullets!
+
+					this.alive = false;
+					return;
+				}
+			}
 		};
 	}
 
@@ -171,7 +189,7 @@ function PlayScene() {
 		var level = [
 			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
 			[1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
-			[1,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,0,2,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
 			[1,0,0,0,0,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
 			[1,0,0,0,0,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
 			[1,1,1,1,0,1,1,0,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
@@ -199,16 +217,24 @@ function PlayScene() {
 		this.height = this.tilesY * tileH;
 		this.entities = [];
 
+		var playerX = 0, playerY = 0;
+
 		var wallImage = Game.images["wall"];
 		for (var y=0; y<this.tilesY; y++) {
 			for (var x=0; x<this.tilesX; x++) {
-				if (level[y][x] == 1) {
-					this.entities.push(new Wall(this, x * tileW, y * tileH, wallImage));
+				switch (level[y][x]) {
+					case 1:	{
+						this.entities.push(new Wall(this, x * tileW, y * tileH, wallImage));
+					} break;
+					case 2:	{
+						playerX = x;
+						playerY = y;
+					} break;
 				}
 			}
 		}
 
-		this.player = new Player(this, 200,100);
+		this.player = new Player(this, playerX * tileW, playerY * tileH);
 		this.entities.push(this.player);
 
 		this.camera = {
