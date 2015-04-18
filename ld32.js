@@ -212,17 +212,19 @@ function PlayScene() {
 		};
 	}
 
-	function Swarmer(playScene, x,y, image, player) {
+	function Swarmer(playScene, x,y, image, player, speed) {
 		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, true);
 		this.player = player;
+		this.speed = speed;
 
 		this.update = function(deltaTime) {
-			if (distance(this, this.player) < 100) {
+			if (distance(this, this.player) < 300) {
 				var diff = {x: this.player.x - this.x,
 							y: this.player.y - this.y};
 				diff = normalise(diff);
-				diff.x *= 200 * deltaTime;
-				diff.y *= 200 * deltaTime;
+				var v = this.speed * deltaTime;
+				diff.x *= v;
+				diff.y *= v;
 
 				this.moveAroundMap(diff.x, diff.y);
 			}
@@ -314,7 +316,7 @@ function PlayScene() {
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player));
+						this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player, 200));
 					} break;
 				}
 			}
