@@ -40,71 +40,25 @@ function MenuScene() {
 		Game.context2d.textAlign = "center";
 		Game.context2d.textBaseline = "middle";
 
-		if (navigator.getUserMedia) {
-			// Go to play scene
-			if (Game.keysPressed[32]) {
-				Game.scene = new PlayScene();
-				Game.sounds["Start"].play();
-			}
-
-			// Render text
-			Game.context2d.fillText("LD32 game!", Game.width/2, 20);
-			Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
-		} else {
-
-			// Render text
-			Game.context2d.fillText("LD32 game!", Game.width/2, 20);
-			Game.context2d.fillText("Sorry, your browser doesn't have microphone support. :(", Game.width/2, Game.height/3);
+		// Go to play scene
+		if (Game.keysPressed[32]) {
+			Game.scene = new PlayScene();
+			Game.sounds["Start"].play();
 		}
+
+		// Render text
+		Game.context2d.fillText("LD32 game!", Game.width/2, 20);
+		Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
 	};
 }
 
 function PlayScene() {
 	this.start = function() {
-		var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-		this.analyser = audioContext.createAnalyser();
 
-		var self = this;
-
-		navigator.getUserMedia({audio: true}, function(stream) {
-			var source = audioContext.createMediaStreamSource(stream);
-			source.connect(self.analyser);
-			window.audioSourceReference = source;
-
-			self.frequencyBufferLength = self.analyser.frequencyBinCount;
-			self.frequencyDataArray = new Uint8Array(self.frequencyBufferLength);
-
-		}, function(error) {
-			self.error = error;
-		});
 	};
 
 	this.update = function(deltaTime) {
-		if (!this.frequencyDataArray) return; // Wait until the audio stuff is linked up
-
-		if (this.error) {
-			Game.context2d.fillText(error, Game.width/2, 20);
-			return;
-		}
-
-		this.analyser.getByteFrequencyData(this.frequencyDataArray);
-
-		// Debug visualiser
-		Game.context2d.fillStyle = 'rgb(0, 0, 0)';
-		Game.context2d.fillRect(0, 0, Game.width, Game.height);
-
-		var barWidth = (Game.width / this.frequencyBufferLength) * 2.5;
-		var barHeight;
-		var x = 0;
-
-		for(var i = 0; i < this.frequencyBufferLength; i++) {
-			barHeight = this.frequencyDataArray[i];
-
-			Game.context2d.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
-			Game.context2d.fillRect(x,Game.height-barHeight/2,barWidth,barHeight/2);
-
-			x += barWidth + 1;
-		}
+		
 	};
 
 	this.start();
@@ -159,12 +113,6 @@ function start() {
 			window.requestAnimationFrame(main);
 		}
 	}
-
-	// --------------------- MICROPHONE? ------------------------
-	navigator.getUserMedia = navigator.getUserMedia ||
-						navigator.webkitGetUserMedia ||
-						navigator.mozGetUserMedia ||
-						navigator.msGetUserMedia;
 
 	// --------------------- LOAD IMAGES ------------------------
 
