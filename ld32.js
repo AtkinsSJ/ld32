@@ -7,7 +7,7 @@
 var canvas = document.getElementById("canvas");
 
 var Game = {
-	MAX_FRAME_TIME: 1000/30,
+	MAX_FRAME_TIME: 1.0/30.0,
 
 	context2d: canvas.getContext("2d"),
 	width: canvas.width,
@@ -56,6 +56,7 @@ KEY_A = 65;
 KEY_S = 83;
 KEY_D = 68;
 
+TEAM_NONE = 0;
 TEAM_PLAYER = 1;
 TEAM_ENEMY = 2;
 
@@ -105,6 +106,9 @@ function PlayScene() {
 		this.width = this.image.width;
 		this.height = this.image.height;
 		this.team = team;
+		this.alive = true;
+
+		this.update = function(deltaTime) {};
 	}
 
 	function Player(playScene, x,y) {
@@ -149,17 +153,60 @@ function PlayScene() {
 			this.x += vx * deltaTime;
 			this.y += vy * deltaTime;
 
-			// // Check for collisions
-			// if (this.x < 0)
+			// Check for collisions
+			if (this.x < 0 || this.x > this.playScene.width
+				|| this.y < 0 || this.y > this.playScene.height) {
+				this.alive = false;
+				return;
+			}
 		};
 	}
 
+	function Wall(playScene, x,y, image) {
+		Entity.call(this, playScene, x, y, image, TEAM_NONE);
+	}
+
 	this.start = function() {
-		this.tilesX = 32;
-		this.tilesY = 32;
-		this.width = this.tilesX * Game.images["floor"].width;
-		this.height = this.tilesY * Game.images["floor"].height;
+
+		var level = [
+			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,0,0,0,0,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,0,0,0,0,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,0,1,1,0,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,0,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,0,0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,0,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+		];
+		this.tilesX = level[0].length;
+		this.tilesY = level.length;
+		var floorImage = Game.images["floor"];
+		var tileW = floorImage.width;
+		var tileH = floorImage.height;
+		this.width = this.tilesX * tileW;
+		this.height = this.tilesY * tileH;
 		this.entities = [];
+
+		var wallImage = Game.images["wall"];
+		for (var y=0; y<this.tilesY; y++) {
+			for (var x=0; x<this.tilesX; x++) {
+				if (level[y][x] == 1) {
+					this.entities.push(new Wall(this, x * tileW, y * tileH, wallImage));
+				}
+			}
+		}
 
 		this.player = new Player(this, 200,100);
 		this.entities.push(this.player);
@@ -174,6 +221,10 @@ function PlayScene() {
 		for (var i = 0; i < this.entities.length; i++) {
 			this.entities[i].update(deltaTime);
 		};
+		// Clear-out dead entities
+		this.entities = this.entities.filter(function(entity){
+			return entity.alive;
+		});
 
 		// Camera
 		var cx = this.player.x + (this.player.width - Game.width)/2;
@@ -239,7 +290,8 @@ function start() {
 	var imagesToLoad = [
 		"bullet",
 		"floor",
-		"player"
+		"player",
+		"wall",
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
