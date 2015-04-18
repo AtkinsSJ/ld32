@@ -85,6 +85,16 @@ function normalise(vector) {
 	return vector;
 }
 
+function limit(vector, maxLength) {
+	var length = Math.sqrt( (vector.x*vector.x) + (vector.y*vector.y) );
+	if (length > maxLength) {
+		var mul = maxLength / length;
+		vector.x *= mul;
+		vector.y *= mul;
+	}
+	return vector;
+}
+
 function overlaps(a,b) {
 	var minX = b.x - a.width,
 		maxX = b.x + b.width,
@@ -189,6 +199,16 @@ function PlayScene() {
 		};
 
 		this.update = function(deltaTime) {};
+
+		this.takeDamage = function(damage) {
+			if (!this.hasOwnProperty("health")) return;
+
+			this.health -= damage;
+			if (this.health <= 0) {
+				// DEAD!
+				this.alive = false;
+			}
+		}
 	}
 
 	function Player(playScene, x,y) {
@@ -233,8 +253,8 @@ function PlayScene() {
 			var diff = {x: tx - cx,
 						y: ty - cy};
 			diff = normalise(diff);
-			diff.x *= 300;
-			diff.y *= 300;
+			diff.x *= 350;
+			diff.y *= 350;
 
 			this.playScene.entities.push(new Bullet(
 				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y, 5
@@ -242,14 +262,6 @@ function PlayScene() {
 
 			this.shootCooldown = this.shootDelay;
 		};
-
-		this.takeDamage = function(damage) {
-			this.health -= damage;
-			if (this.health <= 0) {
-				// DEAD!
-				this.alive = false;
-			}
-		}
 	}
 
 	function Swarmer(playScene, x,y, image, player, speed, health) {
@@ -270,14 +282,81 @@ function PlayScene() {
 				this.moveAroundMap(diff.x, diff.y);
 			}
 		};
+	}
 
-		this.takeDamage = function(damage) {
-			this.health -= damage;
-			if (this.health <= 0) {
-				// DEAD!
-				this.alive = false;
+	function Sprout(playScene, x,y, player) {
+		Entity.call(this, playScene, x,y, Game.images["sprout"], TEAM_ENEMY, true);
+		this.player = player;
+		this.health = 10;
+		this.v = {x:0, y:0};
+		this.acceleration = 300;
+		this.maxSpeed = 300;
+		this.damage = 5;
+
+		this.update = function(deltaTime) {
+			if (distance(this, this.player) < 300) {
+				// Accelerate towards player
+				var toPlayer = {x: (this.player.x - this.player.width/2) - (this.x + this.width/2),
+								y: (this.player.y - this.player.height/2) - (this.y + this.height/2)};
+				toPlayer = normalise(toPlayer);
+				var acc = this.acceleration * deltaTime;
+				this.v.x += toPlayer.x * acc;
+				this.v.y += toPlayer.y * acc;
+
+				this.v = limit(this.v, this.maxSpeed);
 			}
-		}
+
+			// This is *almost* a copy of moveAroundMap(), but with bouncing.
+			var oldX = this.x,
+				oldY = this.y;
+			this.x += this.v.x * deltaTime;
+			this.y += this.v.y * deltaTime;
+
+			var entities = this.playScene.entities;
+			for (var i = 0; i < entities.length; i++) {
+				var other = entities[i];
+				if (other.solid && (other != this)) {
+					// Don't walk through walls and creatures
+					if (overlaps(this, other)) {
+
+						// If player, damage them!
+						if (other.team == TEAM_PLAYER) {
+							other.takeDamage(this.damage);
+						}
+
+						var t = this.y;
+						this.y = oldY;
+						var overlapsX = overlaps(this,other);
+						this.y = t;
+
+						t = this.x;
+						this.x = oldX;
+						var overlapsY = overlaps(this,other);
+						this.x = t;
+
+						if (overlapsX) {
+							if (this.x > oldX) {
+								this.x = other.x - this.width - 1;
+							} else if (this.x < oldX) {
+								this.x = other.x + other.width + 1;
+							}
+
+							this.v.x = -this.v.x;
+						}
+
+						if (overlapsY) {
+							if (this.y > oldY) {
+								this.y = other.y - this.height - 1;
+							} else if (this.y < oldY) {
+								this.y = other.y + other.height + 1;
+							}
+
+							this.v.y = -this.v.y;
+						}
+					}
+				}
+			};
+		};
 	}
 
 	function Bullet(playScene, x,y, image, team, vx,vy, damage) {
@@ -369,7 +448,8 @@ function PlayScene() {
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player, 200, 1));
+						// this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player, 200, 1));
+						this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 				}
 			}
@@ -458,6 +538,7 @@ function start() {
 		"bullet",
 		"broccoli",
 		"floor",
+		"mash",
 		"player",
 		"sprout",
 		"wall",
