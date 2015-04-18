@@ -180,6 +180,7 @@ function PlayScene() {
 	function Player(playScene, x,y) {
 		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true);
 		this.speed = 200;
+		this.health = 100;
 
 		this.update = function(deltaTime) {
 			// Player!
@@ -211,15 +212,24 @@ function PlayScene() {
 			diff.y *= 300;
 
 			this.playScene.entities.push(new Bullet(
-				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y
+				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y, 5
 			));
 		};
+
+		this.takeDamage = function(damage) {
+			this.health -= damage;
+			if (this.health <= 0) {
+				// DEAD!
+				this.alive = false;
+			}
+		}
 	}
 
-	function Swarmer(playScene, x,y, image, player, speed) {
+	function Swarmer(playScene, x,y, image, player, speed, health) {
 		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, true);
 		this.player = player;
 		this.speed = speed;
+		this.health = health;
 
 		this.update = function(deltaTime) {
 			if (distance(this, this.player) < 300) {
@@ -233,12 +243,21 @@ function PlayScene() {
 				this.moveAroundMap(diff.x, diff.y);
 			}
 		};
+
+		this.takeDamage = function(damage) {
+			this.health -= damage;
+			if (this.health <= 0) {
+				// DEAD!
+				this.alive = false;
+			}
+		}
 	}
 
-	function Bullet(playScene, x,y, image, team, vx,vy) {
+	function Bullet(playScene, x,y, image, team, vx,vy, damage) {
 		Entity.call(this, playScene, x,y, image, team, false);
 		this.vx = vx;
 		this.vy = vy;
+		this.damage = damage;
 
 		this.update = function(deltaTime) {
 			this.x += vx * deltaTime;
@@ -255,7 +274,10 @@ function PlayScene() {
 				var entity = this.playScene.entities[i];
 				if (entity.team == this.team) continue;
 				if (overlaps(this, entity)) {
-					// TODO: Actual damage from bullets!
+
+					if (entity.team != TEAM_NONE) {
+						entity.takeDamage(this.damage);
+					}
 
 					this.alive = false;
 					return;
@@ -320,7 +342,7 @@ function PlayScene() {
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player, 200));
+						this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player, 200, 1));
 					} break;
 				}
 			}
