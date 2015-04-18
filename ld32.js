@@ -34,6 +34,13 @@ window.onkeyup = function(e) {
 	delete Game.keysPressed[e.keyCode];
 };
 
+canvas.onclick = function(e) {
+	e = e || window.event;
+	var clickX = e.clientX - canvas.offsetLeft + window.scrollX;
+	var clickY = e.clientY - canvas.offsetTop + window.scrollY;
+	Game.scene.onClick(clickX, clickY);
+};
+
 KEY_LEFT = 37;
 KEY_RIGHT = 39;
 KEY_UP = 38;
@@ -65,6 +72,10 @@ function MenuScene() {
 		// Render text
 		Game.context2d.fillText("LD32 game!", Game.width/2, 20);
 		Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
+	};
+
+	this.onClick = function(x,y) {
+		
 	};
 }
 
@@ -127,6 +138,11 @@ function PlayScene() {
 		};
 
 		Game.context2d.drawImage(this.player.image, this.player.x - this.camera.x, this.player.y - this.camera.y);
+	};
+
+	this.onClick = function(x,y) {
+		// this.player.x = x;
+		// this.player.y = y;
 	};
 
 	this.start();
