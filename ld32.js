@@ -124,6 +124,8 @@ function PlayScene() {
 
 		this.update = function(deltaTime) {
 			// Player!
+			var oldX = this.x,
+				oldY = this.y;
 			if (Game.keysPressed[KEY_LEFT] || Game.keysPressed[KEY_A]) {
 				this.x -= this.speed * deltaTime;
 			} else if (Game.keysPressed[KEY_RIGHT] || Game.keysPressed[KEY_D]) {
@@ -136,6 +138,43 @@ function PlayScene() {
 			}
 			this.x = clamp(this.x, 0, this.playScene.width-this.width);
 			this.y = clamp(this.y, 0, this.playScene.height-this.height);
+
+			// Don't move through walls!
+			var entities = this.playScene.entities;
+			for (var i = 0; i < entities.length; i++) {
+				var other = entities[i];
+				if (other.team != this.team) {
+					// Don't walk through walls and enemies!
+					if (overlaps(this, other)) {
+
+						var t = this.y;
+						this.y = oldY;
+						var overlapsX = overlaps(this,other);
+						this.y = t;
+
+						t = this.x;
+						this.x = oldX;
+						var overlapsY = overlaps(this,other);
+						this.x = t;
+
+						if (overlapsX) {
+							if (this.x > oldX) {
+								this.x = other.x - this.width - 1;
+							} else if (this.x < oldX) {
+								this.x = other.x + other.width + 1;
+							}
+						}
+
+						if (overlapsY) {
+							if (this.y > oldY) {
+								this.y = other.y - this.height - 1;
+							} else if (this.y < oldY) {
+								this.y = other.y + other.height + 1;
+							}
+						}
+					}
+				}
+			};
 		};
 
 		this.shootAt = function(targetX, targetY) {
