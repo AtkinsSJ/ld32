@@ -54,11 +54,18 @@ function MenuScene() {
 
 function PlayScene() {
 	this.start = function() {
-
+		this.tilesX = 32;
+		this.tilesY = 32;
+		this.floorTile = Game.images["floor"];
 	};
 
 	this.update = function(deltaTime) {
-		
+		// Draw flooring
+		for (var y = 0; y < this.tilesY; y++) {
+			for (var x = 0; x < this.tilesX; x++) {
+				Game.context2d.drawImage(this.floorTile, x*this.floorTile.width, y*this.floorTile.height);
+			};
+		};
 	};
 
 	this.start();
@@ -90,7 +97,7 @@ function main(frameTimestamp) {
 function start() {
 	// Load things!
 	var imagesToLoad = [
-		
+		"floor"
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
