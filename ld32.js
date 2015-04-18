@@ -35,260 +35,78 @@ window.onkeyup = function(e) {
 
 function MenuScene() {
 	this.update = function(deltaTime) {
-
-		// Go to play scene
-		if (Game.keysPressed[32]) {
-			Game.scene = new PlayScene();
-			Game.sounds["Start"].play();
-		}
-
-		// Render text
 		Game.context2d.font = "20px sans-serif";
 		Game.context2d.fillStyle = "white";
 		Game.context2d.textAlign = "center";
 		Game.context2d.textBaseline = "middle";
-		Game.context2d.fillText("LD32 game!", Game.width/2, 20);
-		Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
-	};
-}
 
-// Returns whether the collision happened!
-function bounceOff(a,b) {
-	var bRect = {
-		minX: b.x - b.w2 - a.w2,
-		maxX: b.x + b.w2 + a.w2,
-		minY: b.y - b.h2 - a.h2,
-		maxY: b.y + b.h2 + a.h2,
-	};
+		if (navigator.getUserMedia) {
+			// Go to play scene
+			if (Game.keysPressed[32]) {
+				Game.scene = new PlayScene();
+				Game.sounds["Start"].play();
+			}
 
-	if ((a.x >= bRect.minX) && (a.x <= bRect.maxX)
-		&& (a.y >= bRect.minY) && (a.y <= bRect.maxY)) {
+			// Render text
+			Game.context2d.fillText("LD32 game!", Game.width/2, 20);
+			Game.context2d.fillText("Press Space to play!", Game.width/2, Game.height/3);
+		} else {
 
-		// Look at old position, and use that to judge which side we just entered.
-		if (a.oldX < bRect.minX) {
-			// Bounce off left
-			a.vx = -a.vx;
-			a.x = bRect.minX - 1;
-		} else if (a.oldX > bRect.maxX) {
-			// Bounce off right
-			a.vx = -a.vx;
-			a.x = bRect.maxX + 1;
-		} else if (a.oldY < bRect.minY) {
-			// Bounce off top
-			a.vy = -a.vy;
-			a.y = bRect.minY - 1;
-		} else if (a.oldY > bRect.maxY) {
-			// Bounce off bottom
-			a.vy = -a.vy;
-			a.y = bRect.maxY + 1;
+			// Render text
+			Game.context2d.fillText("LD32 game!", Game.width/2, 20);
+			Game.context2d.fillText("Sorry, your browser doesn't have microphone support. :(", Game.width/2, Game.height/3);
 		}
-
-		return true;
-	}
-
-	return false;
+	};
 }
 
 function PlayScene() {
+	this.start = function() {
+		var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+		this.analyser = audioContext.createAnalyser();
 
-	this.startRound = function() {
-		// Hide ball
-		// Set-up brick-creation
-		this.brickPlacingX = 0;
-		this.brickPlacingY = 0;
-		this.brickPlacingDelay = 0.3;
-		this.brickPlacingTimer = -1;
-		this.isStartingRound = true;
+		var self = this;
+
+		navigator.getUserMedia({audio: true}, function(stream) {
+			var source = audioContext.createMediaStreamSource(stream);
+			source.connect(self.analyser);
+
+			self.frequencyBufferLength = self.analyser.frequencyBinCount;
+			self.frequencyDataArray = new Uint8Array(self.frequencyBufferLength);
+
+		}, function(error) {
+			self.error = error;
+		});
 	};
-	this.startRound();
 
 	this.update = function(deltaTime) {
+		if (!this.frequencyDataArray) return; // Wait until the audio stuff is linked up
 
-		if (this.isStartingRound) {
-			this.brickPlacingTimer += deltaTime;
-			if (this.brickPlacingTimer > this.brickPlacingDelay) {
-				this.brickPlacingTimer -= this.brickPlacingDelay;
-				// Place a brick!
-				this.bricks.push(new Brick((this.brickPlacingX+1.5) * BRICK_W,
-											(this.brickPlacingY + 2.5) * BRICK_H));
-				Game.sounds["Build-brick"].play();
-				this.brickPlacingX++;
-
-				if (this.brickPlacingX >= this.bricksX) {
-					this.brickPlacingX = 0;
-					this.brickPlacingY++;
-
-					if (this.brickPlacingY >= this.bricksY) {
-						// We're done! :D
-						this.ball.disabled = false;
-						this.isStartingRound = false;
-					}
-				}
-			}
-
-		} else {
-
-			if (wasKeyJustPressed(32) && !this.ball.launched) { // SPACE / Fire
-				// Launch the ball!
-				this.ball.vy = -200;
-				this.ball.vx = (Math.random() > 0.5) ? 200 : -200;
-				this.ball.launched = true;
-
-				//Game.sounds["jump"].play();
-			}
+		if (this.error) {
+			Game.context2d.fillText(error, Game.width/2, 20);
+			return;
 		}
 
-		this.updatePaddle(deltaTime, this.paddle);
-		this.updateBall(deltaTime, this.ball);
-		this.updateBricks(deltaTime);
-	};
+		this.analyser.getByteFrequencyData(this.frequencyDataArray);
 
-	function Ball() {
-		this.image = Game.images["ball"];
-		this.launched = false;
-		this.disabled = true;
+		// Debug visualiser
+		Game.context2d.fillStyle = 'rgb(0, 0, 0)';
+		Game.context2d.fillRect(0, 0, Game.width, Game.height);
 
-		this.x = Game.width/2;
-		this.y = Game.height/2;
-		this.w = this.image.width;
-		this.h = this.image.height;
-		this.w2 = this.w/2;
-		this.h2 = this.h/2;
+		var barWidth = (Game.width / this.frequencyBufferLength) * 2.5;
+		var barHeight;
+		var x = 0;
 
-		this.vx = 0;
-		this.vy = 0;
-	}
-	this.ball = new Ball();
-	this.updateBall = function(deltaTime, ball) {
-		if (ball.disabled) return;
+		for(var i = 0; i < this.frequencyBufferLength; i++) {
+			barHeight = this.frequencyDataArray[i];
 
-		if (ball.launched) {
-			ball.oldX = ball.x;
-			ball.oldY = ball.y;
-			ball.x += ball.vx * deltaTime;
-			ball.y += ball.vy * deltaTime;
+			Game.context2d.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+			Game.context2d.fillRect(x,Game.height-barHeight/2,barWidth,barHeight/2);
 
-			// Bounce off the paddle!
-			if (bounceOff(ball, this.paddle)) {
-				Game.sounds["Bounce-paddle"].play();
-			}
-
-			// Bounce off bricks!
-			for (var i = 0; i < this.bricks.length; i++) {
-				var brick = this.bricks[i];
-				if (bounceOff(ball, brick)) {
-					brick.alive = false;
-					Game.sounds["Bounce-brick"].play();
-				}
-			};
-
-			// Bounce off the screen edges!
-			if (ball.x <= ball.w2) {
-				ball.vx = -ball.vx;
-				ball.x = ball.w2 + 1;
-				Game.sounds["Bounce-wall"].play();
-			} else if (ball.x >= Game.width-ball.w2) {
-				ball.vx = -ball.vx;
-				ball.x = Game.width-ball.w2 -1;
-				Game.sounds["Bounce-wall"].play();
-			}
-			if (ball.y <= ball.h2) {
-				ball.vy = -ball.vy;
-				ball.y = ball.h2 + 1;
-				Game.sounds["Bounce-wall"].play();
-			} else if (ball.y >= Game.height+ball.h) {
-				// TODO: You lose!
-				ball.vx = 0;
-				ball.vy = 0;
-				ball.launched = false;
-				Game.sounds["Lose"].play();
-			}
-
-		} else {
-			// Snap to the paddle!
-			ball.x = this.paddle.x;
-			ball.y = this.paddle.y - ball.h;
-		}
-
-		Game.context2d.drawImage(ball.image, ball.x - ball.w/2, ball.y - ball.h/2);
-	};
-
-	function Paddle() {
-		this.image = Game.images["paddle"];
-
-		this.x = Game.width/2;
-		this.y = Game.height-16;
-		this.w = this.image.width;
-		this.h = this.image.height;
-		this.w2 = this.w/2;
-		this.h2 = this.h/2;
-
-		this.v = 0;
-		this.maxSpeed = 500;
-		this.acceleration = 2500;
-	}
-	this.paddle = new Paddle();
-	this.updatePaddle = function(deltaTime, paddle) {
-		paddle.v -= (deltaTime * paddle.v * 7);
-		if (Game.keysPressed[37]) { // LEFT
-			paddle.v -= deltaTime * paddle.acceleration;
-		} else if (Game.keysPressed[39]) { // RIGHT
-			paddle.v += deltaTime * paddle.acceleration;
-		}
-
-		if (paddle.v > paddle.maxSpeed) {
-			paddle.v = paddle.maxSpeed;
-		} else if (paddle.v < -paddle.maxSpeed) {
-			paddle.v = -paddle.maxSpeed;
-		}
-
-		paddle.x += deltaTime * paddle.v;
-		if (paddle.x < paddle.w/2) {
-			paddle.x = paddle.w/2;
-			paddle.v = 0;
-		} else if (paddle.x > Game.width - paddle.w/2) {
-			paddle.x = Game.width - paddle.w/2;
-			paddle.v = 0;
-		}
-
-		Game.context2d.drawImage(paddle.image, paddle.x - paddle.w/2, paddle.y - paddle.h/2);
-	};
-
-	var brickImage = Game.images["brick"];
-	var BRICK_W = brickImage.width;
-	var BRICK_H = brickImage.height;
-	this.bricksX = 8;
-	this.bricksY = 3;
-	function Brick(x,y) {
-		this.x = x;
-		this.y = y;
-		this.w = BRICK_W;
-		this.h = BRICK_H;
-		this.w2 = this.w/2;
-		this.h2 = this.h/2;
-		this.image = brickImage;
-		this.alive = true;
-	}
-	this.bricks = [];
-	this.updateBricks = function(deltaTime) {
-
-		this.bricks = this.bricks.filter(function(brick){
-			return brick.alive;
-		});
-
-		if (!this.isStartingRound && this.bricks.length == 0) {
-			// You win! :D
-			Game.context2d.fillText("YOU WIN!", Game.width/2, 20);
-			Game.context2d.fillText("Amazing.", Game.width/2, 50);
-
-		} else {
-			for (var i=0; i<this.bricks.length; i++) {
-				var brick = this.bricks[i];
-
-				Game.context2d.drawImage(brick.image, brick.x - brick.w/2, brick.y - brick.h/2);
-			}
+			x += barWidth + 1;
 		}
 	};
+
+	this.start();
 }
 
 // Run!
@@ -340,6 +158,12 @@ function start() {
 			window.requestAnimationFrame(main);
 		}
 	}
+
+	// --------------------- MICROPHONE? ------------------------
+	navigator.getUserMedia = navigator.getUserMedia ||
+						navigator.webkitGetUserMedia ||
+						navigator.mozGetUserMedia ||
+						navigator.msGetUserMedia;
 
 	// --------------------- LOAD IMAGES ------------------------
 
