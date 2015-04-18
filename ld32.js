@@ -103,8 +103,8 @@ function PlayScene() {
 	this.update = function(deltaTime) {
 
 		this.player.update(deltaTime, this);
-		this.camera.x = this.player.x;
-		this.camera.y = this.player.y;
+		this.camera.x = this.player.x + this.player.width/2 - Game.width/2;
+		this.camera.y = this.player.y + this.player.height/2 - Game.height/2;
 
 		// Draw flooring
 		var floorTile = Game.images["floor"];
