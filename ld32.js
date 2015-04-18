@@ -39,6 +39,12 @@ KEY_RIGHT = 39;
 KEY_UP = 38;
 KEY_DOWN = 40;
 
+function clamp(value, min, max) {
+	if (value < min) return min;
+	if (value > max) return max;
+	return value;
+}
+
 function MenuScene() {
 	this.update = function(deltaTime) {
 		Game.context2d.font = "20px sans-serif";
@@ -79,10 +85,8 @@ function PlayScene() {
 			} else if (Game.keysPressed[KEY_DOWN]) {
 				this.y += this.speed * deltaTime;
 			}
-			if (this.x < 0) { this.x = 0; }
-			else if (this.x > playScene.width-this.width) { this.x = playScene.width-this.width; }
-			if (this.y < 0) { this.y = 0; }
-			else if (this.y > playScene.height-this.height) { this.y = playScene.height-this.height; }
+			this.x = clamp(this.x, 0, playScene.width-this.width);
+			this.y = clamp(this.y, 0, playScene.height-this.height);
 		};
 	}
 
@@ -103,8 +107,12 @@ function PlayScene() {
 	this.update = function(deltaTime) {
 
 		this.player.update(deltaTime, this);
-		this.camera.x = this.player.x + this.player.width/2 - Game.width/2;
-		this.camera.y = this.player.y + this.player.height/2 - Game.height/2;
+		var cx = this.player.x + (this.player.width - Game.width)/2;
+		var cy = this.player.y + (this.player.height - Game.height)/2;
+		cx = clamp(cx, 0, this.width - Game.width);
+		cy = clamp(cy, 0, this.height - Game.height);
+		this.camera.x =  cx;
+		this.camera.y =  cy;
 
 		// Draw flooring
 		var floorTile = Game.images["floor"];
