@@ -41,11 +41,11 @@ canvas.onclick = function(e) {
 	var clickY = e.clientY - canvas.offsetTop + window.scrollY;
 	Game.scene.onClick(clickX, clickY);
 };
-canvas.onmousemove = function(e) {
-	e = e || window.event;
-	Game.mouse.x = e.clientX - canvas.offsetLeft + window.scrollX;
-	Game.mouse.y = e.clientY - canvas.offsetTop + window.scrollY;
-};
+// canvas.onmousemove = function(e) {
+// 	e = e || window.event;
+// 	Game.mouse.x = e.clientX - canvas.offsetLeft + window.scrollX;
+// 	Game.mouse.y = e.clientY - canvas.offsetTop + window.scrollY;
+// };
 
 KEY_LEFT = 37;
 KEY_RIGHT = 39;
@@ -56,10 +56,20 @@ KEY_A = 65;
 KEY_S = 83;
 KEY_D = 68;
 
+TEAM_PLAYER = 1;
+TEAM_ENEMY = 2;
+
 function clamp(value, min, max) {
 	if (value < min) return min;
 	if (value > max) return max;
 	return value;
+}
+
+function normalise(vector) {
+	var length = Math.sqrt( (vector.x*vector.x) + (vector.y*vector.y) );
+	vector.x /= length;
+	vector.y /= length;
+	return vector;
 }
 
 function MenuScene() {
@@ -86,15 +96,22 @@ function MenuScene() {
 }
 
 function PlayScene() {
-	function Player(x,y) {
+
+	function Entity(playScene, x,y, image, team) {
+		this.playScene = playScene;
 		this.x = x;
 		this.y = y;
-		this.image = Game.images["player"];
+		this.image = image;
 		this.width = this.image.width;
 		this.height = this.image.height;
+		this.team = team;
+	}
+
+	function Player(playScene, x,y) {
+		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER);
 		this.speed = 200;
 
-		this.update = function(deltaTime, playScene) {
+		this.update = function(deltaTime) {
 			// Player!
 			if (Game.keysPressed[KEY_LEFT] || Game.keysPressed[KEY_A]) {
 				this.x -= this.speed * deltaTime;
@@ -106,8 +123,34 @@ function PlayScene() {
 			} else if (Game.keysPressed[KEY_DOWN] || Game.keysPressed[KEY_S]) {
 				this.y += this.speed * deltaTime;
 			}
-			this.x = clamp(this.x, 0, playScene.width-this.width);
-			this.y = clamp(this.y, 0, playScene.height-this.height);
+			this.x = clamp(this.x, 0, this.playScene.width-this.width);
+			this.y = clamp(this.y, 0, this.playScene.height-this.height);
+		};
+
+		this.shootAt = function(targetX, targetY) {
+			var diff = {x: targetX - this.x,
+						y: targetY - this.y};
+			diff = normalise(diff);
+			diff.x *= 300;
+			diff.y *= 300;
+
+			this.playScene.entities.push(new Bullet(
+				this.playScene, this.x, this.y, Game.images["bullet"], this.team, diff.x, diff.y
+			));
+		};
+	}
+
+	function Bullet(playScene, x,y, image, team, vx,vy) {
+		Entity.call(this, playScene, x,y, image, team);
+		this.vx = vx;
+		this.vy = vy;
+
+		this.update = function(deltaTime) {
+			this.x += vx * deltaTime;
+			this.y += vy * deltaTime;
+
+			// // Check for collisions
+			// if (this.x < 0)
 		};
 	}
 
@@ -116,8 +159,10 @@ function PlayScene() {
 		this.tilesY = 32;
 		this.width = this.tilesX * Game.images["floor"].width;
 		this.height = this.tilesY * Game.images["floor"].height;
+		this.entities = [];
 
-		this.player = new Player(200,100);
+		this.player = new Player(this, 200,100);
+		this.entities.push(this.player);
 
 		this.camera = {
 			x: this.player.x,
@@ -126,8 +171,11 @@ function PlayScene() {
 	};
 
 	this.update = function(deltaTime) {
+		for (var i = 0; i < this.entities.length; i++) {
+			this.entities[i].update(deltaTime);
+		};
 
-		this.player.update(deltaTime, this);
+		// Camera
 		var cx = this.player.x + (this.player.width - Game.width)/2;
 		var cy = this.player.y + (this.player.height - Game.height)/2;
 		cx = clamp(cx, 0, this.width - Game.width);
@@ -143,12 +191,15 @@ function PlayScene() {
 			};
 		};
 
-		Game.context2d.drawImage(this.player.image, this.player.x - this.camera.x, this.player.y - this.camera.y);
+		// Draw everything else
+		for (var i = 0; i < this.entities.length; i++) {
+			var entity = this.entities[i];
+			Game.context2d.drawImage(entity.image, entity.x - this.camera.x, entity.y - this.camera.y);
+		};
 	};
 
 	this.onClick = function(x,y) {
-		// this.player.x = x;
-		// this.player.y = y;
+		this.player.shootAt(x + this.camera.x, y + this.camera.y);
 	};
 
 	this.start();
@@ -180,6 +231,7 @@ function main(frameTimestamp) {
 function start() {
 	// Load things!
 	var imagesToLoad = [
+		"bullet",
 		"floor",
 		"player"
 	];
