@@ -27,11 +27,17 @@ window.onkeydown = function(e) {
 	e = e || window.event;
 	Game.keysPressed[e.keyCode] = true;
 	e.preventDefault();
+	// console.log("Just pressed ", e.keyCode);
 };
 window.onkeyup = function(e) {
 	e = e || window.event;
 	delete Game.keysPressed[e.keyCode];
 };
+
+KEY_LEFT = 37;
+KEY_RIGHT = 39;
+KEY_UP = 38;
+KEY_DOWN = 40;
 
 function MenuScene() {
 	this.update = function(deltaTime) {
@@ -53,19 +59,62 @@ function MenuScene() {
 }
 
 function PlayScene() {
+	function Player(x,y) {
+		this.x = x;
+		this.y = y;
+		this.image = Game.images["player"];
+		this.width = this.image.width;
+		this.height = this.image.height;
+		this.speed = 200;
+
+		this.update = function(deltaTime, playScene) {
+			// Player!
+			if (Game.keysPressed[KEY_LEFT]) {
+				this.x -= this.speed * deltaTime;
+			} else if (Game.keysPressed[KEY_RIGHT]) {
+				this.x += this.speed * deltaTime;
+			}
+			if (Game.keysPressed[KEY_UP]) {
+				this.y -= this.speed * deltaTime;
+			} else if (Game.keysPressed[KEY_DOWN]) {
+				this.y += this.speed * deltaTime;
+			}
+			if (this.x < 0) { this.x = 0; }
+			else if (this.x > playScene.width-this.width) { this.x = playScene.width-this.width; }
+			if (this.y < 0) { this.y = 0; }
+			else if (this.y > playScene.height-this.height) { this.y = playScene.height-this.height; }
+		};
+	}
+
 	this.start = function() {
 		this.tilesX = 32;
 		this.tilesY = 32;
-		this.floorTile = Game.images["floor"];
+		this.width = this.tilesX * Game.images["floor"].width;
+		this.height = this.tilesY * Game.images["floor"].height;
+
+		this.player = new Player(200,100);
+
+		this.camera = {
+			x: this.player.x,
+			y: this.player.y
+		};
 	};
 
 	this.update = function(deltaTime) {
+
+		this.player.update(deltaTime, this);
+		this.camera.x = this.player.x;
+		this.camera.y = this.player.y;
+
 		// Draw flooring
+		var floorTile = Game.images["floor"];
 		for (var y = 0; y < this.tilesY; y++) {
 			for (var x = 0; x < this.tilesX; x++) {
-				Game.context2d.drawImage(this.floorTile, x*this.floorTile.width, y*this.floorTile.height);
+				Game.context2d.drawImage(floorTile, (x*floorTile.width) - this.camera.x, y*floorTile.height - this.camera.y);
 			};
 		};
+
+		Game.context2d.drawImage(this.player.image, this.player.x - this.camera.x, this.player.y - this.camera.y);
 	};
 
 	this.start();
@@ -97,7 +146,8 @@ function main(frameTimestamp) {
 function start() {
 	// Load things!
 	var imagesToLoad = [
-		"floor"
+		"floor",
+		"player"
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
