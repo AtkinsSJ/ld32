@@ -359,6 +359,55 @@ function PlayScene() {
 		};
 	}
 
+	/**
+		HE DID THE MASH, HE DID THE MONSTER MASH!
+		THE MONSTER MASH, IT WAS A GRAVEYARD SMASH!
+		HE DID THE MASH, IT CAUGHT ON IN A FLASH!
+		HE DID THE MASH, HE DID THE MONSTER MASH!
+	*/
+	function MonsterMash(playScene, x,y, player, size) {
+		Entity.call(this, playScene, x,y, Game.images["mash"], TEAM_ENEMY, false);
+		this.player = player;
+		this.speed = 50 / size;
+		this.health = 5 * size;
+		this.size = size;
+		var scale = this.size / 5;
+		this.width *= scale;
+		this.height *= scale;
+
+		this.update = function(deltaTime) {
+			if (distance(this, this.player) < 300) {
+				var diff = {x: this.player.x - this.x,
+							y: this.player.y - this.y};
+				diff = normalise(diff);
+				var v = this.speed * deltaTime;
+				diff.x *= v;
+				diff.y *= v;
+
+				this.moveAroundMap(diff.x, diff.y);
+			}
+		};
+
+		this.takeDamage = function(damage) {
+			this.health -= damage;
+			if (this.health <= 0) {
+				// DEAD!
+				if (this.size > 1) {
+					// Spawn smaller mashes!
+					var newWidth = this.image.width * (this.size-1)/5;
+					this.playScene.entities.push(
+						new MonsterMash(this.playScene, this.x - newWidth*0.5, this.y, this.player, this.size - 1)
+					);
+
+					this.playScene.entities.push(
+						new MonsterMash(this.playScene, this.x + newWidth*0.5, this.y, this.player, this.size - 1)
+					);
+				}
+				this.alive = false;
+			}
+		}
+	}
+
 	function Bullet(playScene, x,y, image, team, vx,vy, damage) {
 		Entity.call(this, playScene, x,y, image, team, false);
 		this.vx = vx;
@@ -410,7 +459,7 @@ function PlayScene() {
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,0,0,4,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
@@ -448,8 +497,10 @@ function PlayScene() {
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						// this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player, 200, 1));
 						this.entities.push(new Sprout(this, xx, yy, this.player));
+					} break;
+					case 4: { // Monster Mash!
+						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
 					} break;
 				}
 			}
@@ -497,7 +548,10 @@ function PlayScene() {
 		// Draw everything else
 		for (var i = 0; i < this.entities.length; i++) {
 			var entity = this.entities[i];
-			Game.context2d.drawImage(entity.image, entity.x - this.camera.x, entity.y - this.camera.y);
+			Game.context2d.drawImage(entity.image,
+				entity.x - this.camera.x, entity.y - this.camera.y,
+				entity.width, entity.height
+			);
 		}
 	};
 
