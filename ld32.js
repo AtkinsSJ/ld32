@@ -388,7 +388,7 @@ function PlayScene() {
 	function MonsterMash(playScene, x,y, player, size) {
 		Entity.call(this, playScene, x,y, Game.images["mash"], TEAM_ENEMY, false);
 		this.player = player;
-		this.speed = 50 / size;
+		this.speed = 100 / size;
 		this.health = 5 * size;
 		this.damage = 1;
 		this.size = size;
