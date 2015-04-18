@@ -14,6 +14,7 @@ var Game = {
 	height: canvas.height,
 	keysPressed: {},
 	oldKeysPressed: {},
+	mouse: {x:0, y:0},
 	scene: new MenuScene(),
 	images: {},
 	sounds: {},
@@ -39,6 +40,11 @@ canvas.onclick = function(e) {
 	var clickX = e.clientX - canvas.offsetLeft + window.scrollX;
 	var clickY = e.clientY - canvas.offsetTop + window.scrollY;
 	Game.scene.onClick(clickX, clickY);
+};
+canvas.onmousemove = function(e) {
+	e = e || window.event;
+	Game.mouse.x = e.clientX - canvas.offsetLeft + window.scrollX;
+	Game.mouse.y = e.clientY - canvas.offsetTop + window.scrollY;
 };
 
 KEY_LEFT = 37;
