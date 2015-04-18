@@ -82,6 +82,17 @@ function overlaps(a,b) {
 	return (a.x >= minX) && (a.x < maxX) && (a.y >= minY) && (a.y < maxY);
 }
 
+function distance(a,b) {
+	var centreAX = a.x + a.width/2,
+		centreAY = a.y + a.height/2,
+		centreBX = b.x + b.width/2,
+		centreBY = b.y + b.height/2;
+
+	var xDiff = Math.abs(centreAX - centreBX),
+		yDiff = Math.abs(centreAY - centreBY);
+	return Math.sqrt(xDiff*xDiff + yDiff*yDiff);
+}
+
 function MenuScene() {
 	this.update = function(deltaTime) {
 		Game.context2d.font = "20px sans-serif";
@@ -105,7 +116,7 @@ function MenuScene() {
 
 function PlayScene() {
 
-	function Entity(playScene, x,y, image, team) {
+	function Entity(playScene, x,y, image, team, solid) {
 		this.playScene = playScene;
 		this.x = x;
 		this.y = y;
@@ -113,38 +124,20 @@ function PlayScene() {
 		this.width = this.image.width;
 		this.height = this.image.height;
 		this.team = team;
+		this.solid = solid;
 		this.alive = true;
 
-		this.update = function(deltaTime) {};
-	}
-
-	function Player(playScene, x,y) {
-		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER);
-		this.speed = 200;
-
-		this.update = function(deltaTime) {
-			// Player!
+		this.moveAroundMap = function(xDiff, yDiff) {
 			var oldX = this.x,
 				oldY = this.y;
-			if (Game.keysPressed[KEY_LEFT] || Game.keysPressed[KEY_A]) {
-				this.x -= this.speed * deltaTime;
-			} else if (Game.keysPressed[KEY_RIGHT] || Game.keysPressed[KEY_D]) {
-				this.x += this.speed * deltaTime;
-			}
-			if (Game.keysPressed[KEY_UP] || Game.keysPressed[KEY_W]) {
-				this.y -= this.speed * deltaTime;
-			} else if (Game.keysPressed[KEY_DOWN] || Game.keysPressed[KEY_S]) {
-				this.y += this.speed * deltaTime;
-			}
-			this.x = clamp(this.x, 0, this.playScene.width-this.width);
-			this.y = clamp(this.y, 0, this.playScene.height-this.height);
+			this.x += xDiff;
+			this.y += yDiff;
 
-			// Don't move through walls!
 			var entities = this.playScene.entities;
 			for (var i = 0; i < entities.length; i++) {
 				var other = entities[i];
-				if (other.team != this.team) {
-					// Don't walk through walls and enemies!
+				if (other.solid && (other != this)) {
+					// Don't walk through walls and creatures
 					if (overlaps(this, other)) {
 
 						var t = this.y;
@@ -175,6 +168,35 @@ function PlayScene() {
 					}
 				}
 			};
+
+			// Stay in bounds! Not actually needed.
+			// this.x = clamp(this.x, 0, this.playScene.width-this.width);
+			// this.y = clamp(this.y, 0, this.playScene.height-this.height);
+		};
+
+		this.update = function(deltaTime) {};
+	}
+
+	function Player(playScene, x,y) {
+		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true);
+		this.speed = 200;
+
+		this.update = function(deltaTime) {
+			// Player!
+			var xDiff = 0,
+				yDiff = 0;
+			if (Game.keysPressed[KEY_LEFT] || Game.keysPressed[KEY_A]) {
+				xDiff = -this.speed * deltaTime;
+			} else if (Game.keysPressed[KEY_RIGHT] || Game.keysPressed[KEY_D]) {
+				xDiff = this.speed * deltaTime;
+			}
+			if (Game.keysPressed[KEY_UP] || Game.keysPressed[KEY_W]) {
+				yDiff = -this.speed * deltaTime;
+			} else if (Game.keysPressed[KEY_DOWN] || Game.keysPressed[KEY_S]) {
+				yDiff = this.speed * deltaTime;
+			}
+
+			this.moveAroundMap(xDiff, yDiff);
 		};
 
 		this.shootAt = function(targetX, targetY) {
@@ -190,8 +212,25 @@ function PlayScene() {
 		};
 	}
 
+	function Swarmer(playScene, x,y, image, player) {
+		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, true);
+		this.player = player;
+
+		this.update = function(deltaTime) {
+			if (distance(this, this.player) < 100) {
+				var diff = {x: this.player.x - this.x,
+							y: this.player.y - this.y};
+				diff = normalise(diff);
+				diff.x *= 200 * deltaTime;
+				diff.y *= 200 * deltaTime;
+
+				this.moveAroundMap(diff.x, diff.y);
+			}
+		};
+	}
+
 	function Bullet(playScene, x,y, image, team, vx,vy) {
-		Entity.call(this, playScene, x,y, image, team);
+		Entity.call(this, playScene, x,y, image, team, false);
 		this.vx = vx;
 		this.vy = vy;
 
@@ -220,7 +259,7 @@ function PlayScene() {
 	}
 
 	function Wall(playScene, x,y, image) {
-		Entity.call(this, playScene, x, y, image, TEAM_NONE);
+		Entity.call(this, playScene, x, y, image, TEAM_NONE, true);
 	}
 
 	this.start = function() {
@@ -235,10 +274,10 @@ function PlayScene() {
 			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
+			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,0,3,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
@@ -258,24 +297,29 @@ function PlayScene() {
 		this.height = this.tilesY * tileH;
 		this.entities = [];
 
-		var playerX = 0, playerY = 0;
+		this.player = new Player(this, 0,0);
 
-		var wallImage = Game.images["wall"];
+		var wallImage = Game.images["wall"],
+			sproutImage = Game.images["sprout"];
 		for (var y=0; y<this.tilesY; y++) {
 			for (var x=0; x<this.tilesX; x++) {
+				var xx = x * tileW,
+					yy = y * tileH;
 				switch (level[y][x]) {
 					case 1:	{
-						this.entities.push(new Wall(this, x * tileW, y * tileH, wallImage));
+						this.entities.push(new Wall(this, xx, yy, wallImage));
 					} break;
 					case 2:	{
-						playerX = x;
-						playerY = y;
+						this.player.x = xx;
+						this.player.y = yy;
+					} break;
+					case 3: { // Sprout!
+						this.entities.push(new Swarmer(this, xx, yy, sproutImage, this.player));
 					} break;
 				}
 			}
 		}
 
-		this.player = new Player(this, playerX * tileW, playerY * tileH);
 		this.entities.push(this.player);
 
 		this.camera = {
@@ -356,8 +400,10 @@ function start() {
 	// Load things!
 	var imagesToLoad = [
 		"bullet",
+		"broccoli",
 		"floor",
 		"player",
+		"sprout",
 		"wall",
 	];
 	var imagesLoaded = 0;
