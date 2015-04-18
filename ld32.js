@@ -169,29 +169,33 @@ function PlayScene() {
 							other.takeDamage(this.damage);
 						}
 
-						var t = this.y;
-						this.y = oldY;
-						var overlapsX = overlaps(this,other);
-						this.y = t;
+						// Stops the (non-solid) mash from bouncing off the player.
+						if (this.solid || other.team == TEAM_NONE) {
 
-						t = this.x;
-						this.x = oldX;
-						var overlapsY = overlaps(this,other);
-						this.x = t;
+							var t = this.y;
+							this.y = oldY;
+							var overlapsX = overlaps(this,other);
+							this.y = t;
 
-						if (overlapsX) {
-							if (this.x > oldX) {
-								this.x = other.x - this.width - 1;
-							} else if (this.x < oldX) {
-								this.x = other.x + other.width + 1;
+							t = this.x;
+							this.x = oldX;
+							var overlapsY = overlaps(this,other);
+							this.x = t;
+
+							if (overlapsX) {
+								if (this.x > oldX) {
+									this.x = other.x - this.width - 1;
+								} else if (this.x < oldX) {
+									this.x = other.x + other.width + 1;
+								}
 							}
-						}
 
-						if (overlapsY) {
-							if (this.y > oldY) {
-								this.y = other.y - this.height - 1;
-							} else if (this.y < oldY) {
-								this.y = other.y + other.height + 1;
+							if (overlapsY) {
+								if (this.y > oldY) {
+									this.y = other.y - this.height - 1;
+								} else if (this.y < oldY) {
+									this.y = other.y + other.height + 1;
+								}
 							}
 						}
 					}
@@ -386,6 +390,7 @@ function PlayScene() {
 		this.player = player;
 		this.speed = 50 / size;
 		this.health = 5 * size;
+		this.damage = 1;
 		this.size = size;
 		var scale = this.size / 5;
 		this.width *= scale;
