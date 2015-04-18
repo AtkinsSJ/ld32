@@ -43,7 +43,7 @@ function MenuScene() {
 		// Go to play scene
 		if (Game.keysPressed[32]) {
 			Game.scene = new PlayScene();
-			Game.sounds["Start"].play();
+			//Game.sounds["Start"].play();
 		}
 
 		// Render text
@@ -90,18 +90,11 @@ function main(frameTimestamp) {
 function start() {
 	// Load things!
 	var imagesToLoad = [
-		"ball",
-		"brick",
-		"paddle",
+		
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
-		"Bounce-brick",
-		"Bounce-paddle",
-		"Bounce-wall",
-		"Build-brick",
-		"Lose",
-		"Start",
+		
 	];
 	var soundsLoaded = 0;
 
@@ -148,6 +141,8 @@ function start() {
 		});
 		Game.sounds[soundName] = sound;
 	}
+
+	checkIfReady();
 }
 
 start();
