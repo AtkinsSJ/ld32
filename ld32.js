@@ -169,7 +169,6 @@ function PlayScene() {
 				if (other.solid && (other != this)) {
 					// Don't walk through walls and creatures
 					if (overlaps(this, other)) {
-						console.log("Overlap!");
 
 						// If player, damage them!
 						if (other.team == TEAM_PLAYER) {
@@ -192,12 +191,9 @@ function PlayScene() {
 							this.x = t;
 
 							if (overlapsX) {
-								console.log("Overlap in X!");
 								if (this.x > oldX) { // Going Right
-									console.log("Was going right");
 									this.x = other.x - other.w2 - this.w2 - 1;
 								} else if (this.x < oldX) { // Going Left
-									console.log("Was going left");
 									this.x = other.x + other.w2 + this.w2 + 1;
 								}
 
@@ -207,12 +203,9 @@ function PlayScene() {
 							}
 
 							if (overlapsY) {
-								console.log("Overlap in Y!");
 								if (this.y > oldY) { // Going Down
-									console.log("Was going down");
 									this.y = other.y - other.h2 - this.h2 - 1;
 								} else if (this.y < oldY) { // Going Up
-									console.log("Was going up");
 									this.y = other.y + other.h2 + this.h2 + 1;
 								}
 
