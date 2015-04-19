@@ -128,7 +128,7 @@ function MenuScene() {
 		Game.context2d.textBaseline = "middle";
 
 		// Go to play scene
-		if (Game.keysPressed[32]) {
+		if (wasKeyJustPressed(32)) {
 			Game.scene = new PlayScene();
 			//Game.sounds["Start"].play();
 		}
@@ -293,6 +293,21 @@ function PlayScene() {
 		this.addPoints = function(points) {
 			this.score += points;
 			this.scoreText = pad(this.score, 7);
+
+			// Determine if we've won
+			var entities = this.playScene.entities;
+			var foundEnemies = false;
+			for (var i = 0; i < entities.length; i++) {
+				if (entities[i].team == TEAM_ENEMY) {
+					foundEnemies = true;
+					break;
+				}
+			}
+
+			if (!foundEnemies) {
+				// YOU WIN!
+				this.playScene.gameWon = true;
+			}
 		};
 	}
 
@@ -536,6 +551,7 @@ function PlayScene() {
 		this.width = this.tilesX * tileW;
 		this.height = this.tilesY * tileH;
 		this.entities = [];
+		this.gameWon = false;
 
 		this.player = new Player(this, 0,0);
 
@@ -624,6 +640,26 @@ function PlayScene() {
 
 		Game.context2d.textAlign = "right";
 		Game.context2d.fillText("Score: " + this.player.scoreText, Game.width-5, 15);
+
+		// Game over stuff
+		if (this.gameWon || !this.player.alive) {
+
+			Game.context2d.fillStyle = "rgba(0,0,0,0.5)";
+			Game.context2d.fillRect(0,30, Game.width, Game.height-30);
+
+			var message = this.gameWon ? "YOU WIN! :D" : "You were defeated by angry vegetables. :(";
+
+			Game.context2d.fillStyle = "white";
+			Game.context2d.textAlign = "center";
+			Game.context2d.fillText(message, Game.width/2, Game.height/2);
+
+			Game.context2d.fillText("Press space to return to the menu.", Game.width/2, Game.height * 0.75);
+
+			if (wasKeyJustPressed(32)) {
+				Game.scene = new MenuScene();
+				//Game.sounds["Start"].play();
+			}
+		}
 	};
 
 	this.getMousePosition = function() {
