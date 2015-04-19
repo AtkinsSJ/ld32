@@ -453,9 +453,12 @@ function PlayScene() {
 		this.shootAngle = 20;
 
 		this.update = function(deltaTime) {
+			// Shoot!
 			if (this.shootCooldown > 0) {
 				this.shootCooldown -= deltaTime;
 			}
+			this.shootPlayer();
+
 			var playerDistance = distance(this, this.player);
 			if (playerDistance < 300) {
 				// RUN AWAY!!!!
@@ -465,9 +468,6 @@ function PlayScene() {
 				v.x *= this.speed * deltaTime;
 				v.y *= this.speed * deltaTime;
 				this.moveAroundMap(v.x, v.y);
-
-				// Shoot!
-				this.shootPlayer();
 			}
 		};
 
