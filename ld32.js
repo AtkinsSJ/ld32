@@ -464,7 +464,7 @@ function PlayScene() {
 	}
 
 	function Broccoli(playScene, x,y, player) {
-		Monster.call(this, playScene, x,y, Game.images["broccoli"], player, 20, 0, 50, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
+		Monster.call(this, playScene, x,y, Game.images["broccoli"], player, 30, 0, 50, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
 		this.speed = 300;
 		this.shootCooldown = 0;
 		this.shootDelay = 1;
@@ -475,7 +475,7 @@ function PlayScene() {
 				this.shootCooldown -= deltaTime;
 			}
 			var playerDistance = distance(this, this.player);
-			if (playerDistance < 100) {
+			if (playerDistance < 300) {
 				// RUN AWAY!!!!
 				var v = {x:this.x - this.player.x,
 						 y: this.y - this.player.y};
@@ -483,8 +483,7 @@ function PlayScene() {
 				v.x *= this.speed * deltaTime;
 				v.y *= this.speed * deltaTime;
 				this.moveAroundMap(v.x, v.y);
-			}
-			if (playerDistance < 300) {
+
 				// Shoot!
 				this.shootPlayer();
 			}
@@ -515,8 +514,6 @@ function PlayScene() {
 				this.playScene, this.x, this.y, Game.images["broccoli-bullet"], this.team, diffB.x, diffB.y, 5, angleB + 90
 			));
 
-
-
 			// Game.sounds["player-fire"].play();
 
 			this.shootCooldown = this.shootDelay;
@@ -543,7 +540,7 @@ function PlayScene() {
 
 			for (var i=0; i<this.playScene.entities.length; i++) {
 				var entity = this.playScene.entities[i];
-				if (entity.team == this.team) continue;
+				if (entity.team == this.team || !entity.solid) continue;
 				if (overlaps(this, entity)) {
 
 					if (entity.team != TEAM_NONE) {
