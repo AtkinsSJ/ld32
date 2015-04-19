@@ -115,6 +115,11 @@ function distance(a,b) {
 	return Math.sqrt(xDiff*xDiff + yDiff*yDiff);
 }
 
+function pad(num, size) {
+	var s = "000000000" + num;
+	return s.substr(s.length-size);
+}
+
 function MenuScene() {
 	this.update = function(deltaTime) {
 		Game.context2d.font = "20px sans-serif";
@@ -237,6 +242,8 @@ function PlayScene() {
 		this.health = 100;
 		this.shootDelay = 0.2;
 		this.shootCooldown = 0;
+		this.score = 0;
+		this.scoreText = pad(this.score, 7);
 
 		this.update = function(deltaTime) {
 			// Player!
@@ -593,9 +600,13 @@ function PlayScene() {
 
 		Game.context2d.font = "20px sans-serif";
 		Game.context2d.fillStyle = "white";
-		Game.context2d.textAlign = "left";
 		Game.context2d.textBaseline = "middle";
+
+		Game.context2d.textAlign = "left";
 		Game.context2d.fillText("Health: " + this.player.health, 5, 15);
+
+		Game.context2d.textAlign = "right";
+		Game.context2d.fillText("Score: " + this.player.scoreText, Game.width-5, 15);
 	};
 
 	this.getMousePosition = function() {
