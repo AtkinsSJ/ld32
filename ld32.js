@@ -740,11 +740,11 @@ function start() {
 		"broccoli",
 		"broccoli-bullet",
 		"bullet",
-		"floor",
+		// "floor",
 		"mash",
 		"player",
 		"sprout",
-		"wall",
+		// "wall",
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
