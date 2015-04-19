@@ -715,6 +715,14 @@ function main(frameTimestamp) {
 }
 
 function start() {
+
+	Game.context2d.font = "20px sans-serif";
+	Game.context2d.fillStyle = "white";
+	Game.context2d.textAlign = "center";
+	Game.context2d.textBaseline = "middle";
+	var loadingText = "Loading";
+	Game.context2d.fillText(loadingText, Game.width/2, Game.height/2);
+
 	// Load things!
 	var imagesToLoad = [
 		"bullet",
@@ -746,6 +754,11 @@ function start() {
 			// Done!
 			console.log("Finished loading assets!");
 			window.requestAnimationFrame(main);
+		} else {
+			loadingText += '.';
+
+			Game.context2d.clearRect(0,0, Game.width, Game.height);
+			Game.context2d.fillText(loadingText, Game.width/2, Game.height/2);
 		}
 	}
 
