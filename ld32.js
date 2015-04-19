@@ -158,8 +158,13 @@ function PlayScene() {
 		this.x = x;
 		this.y = y;
 		this.image = image;
-		this.width = this.image.width;
-		this.height = this.image.height;
+		if (this.image) {
+			this.width = this.image.width;
+			this.height = this.image.height;
+		} else {
+			this.width = 32;
+			this.height = 32;
+		}
 		this.w2 = this.width/2;
 		this.h2 = this.height/2;
 		this.team = team;
@@ -233,8 +238,8 @@ function PlayScene() {
 			};
 
 			// Stay in bounds! Not actually needed.
-			// this.x = clamp(this.x, 0, this.playScene.width-this.width);
-			// this.y = clamp(this.y, 0, this.playScene.height-this.height);
+			this.x = clamp(this.x, this.w2, this.playScene.width-this.w2);
+			this.y = clamp(this.y, this.h2, this.playScene.height-this.h2);
 		};
 
 		this.update = function(deltaTime) {};
@@ -535,41 +540,43 @@ function PlayScene() {
 		};
 	}
 
-	function Wall(playScene, x,y, image) {
-		Entity.call(this, playScene, x, y, image, TEAM_NONE, true, false);
+	function Wall(playScene, x,y) {
+		Entity.call(this, playScene, x, y, null, TEAM_NONE, true, false);
 	}
 
 	this.start = function() {
 
 		var level = [
-			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
-			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,3,0,0,1,],
-			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,0,0,0,0,0,1,],
-			[1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,1,],
-			[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,1,],
-			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,3,0,0,0,0,1,],
-			[1,0,0,0,0,0,5,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
-			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,3,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,3,0,0,0,3,0,0,1,1,1,1,0,0,0,0,3,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,1,1,0,0,0,0,0,0,0,0,0,3,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,4,0,0,0,0,0,0,0,0,0,0,1,1,0,0,3,0,0,0,0,3,0,0,0,0,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,3,0,0,0,3,0,0,0,1,1,1,1,0,0,0,3,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,3,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
-			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
-			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
-			[1,0,3,0,0,3,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,3,0,1,],
-			[1,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,1,],
-			[1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,3,1,],
-			[1,0,0,3,0,3,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,3,0,0,0,0,1,],
-			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,3,0,0,1,],
-			[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,],
+			[0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+			[0,0,2,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,4,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,3,0,0,],
+			[0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,3,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,],
+			[0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,5,0,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+			[0,0,4,0,0,0,3,0,0,0,0,0,0,0,0,0,3,0,0,1,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,3,0,0,0,5,0,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,3,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,],
+			[0,0,3,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,3,0,0,],
+			[0,0,0,3,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,4,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0,0,0,0,],
+			[0,0,0,0,0,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,3,0,1,0,0,1,1,1,1,1,1,0,0,1,0,3,0,0,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,],
+			[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,],
+
 		];
 		this.tilesX = level[0].length;
 		this.tilesY = level.length;
-		var floorImage = Game.images["floor"];
-		var tileW = floorImage.width;
-		var tileH = floorImage.height;
+		var tileW = 32;
+		var tileH = 32;
 		this.width = this.tilesX * tileW;
 		this.height = this.tilesY * tileH;
 		this.entities = [];
@@ -577,25 +584,23 @@ function PlayScene() {
 
 		this.player = new Player(this, 0,0);
 
-		var wallImage = Game.images["wall"],
-			sproutImage = Game.images["sprout"];
 		for (var y=0; y<this.tilesY; y++) {
 			for (var x=0; x<this.tilesX; x++) {
 				var xx = (x + 0.5) * tileW,
 					yy = (y + 0.5) * tileH;
 				switch (level[y][x]) {
 					case 1:	{
-						this.entities.push(new Wall(this, xx, yy, wallImage));
+						this.entities.push(new Wall(this, xx, yy));
 					} break;
 					case 2:	{
 						this.player.x = xx;
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						// this.entities.push(new Sprout(this, xx, yy, this.player));
+						this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 					case 4: { // Monster Mash!
-						// this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
+						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
 					} break;
 					case 5: { // Broccoli
 						this.entities.push(new Broccoli(this, xx, yy, this.player));
@@ -636,23 +641,11 @@ function PlayScene() {
 			0,0, Game.width, Game.height // Dest rect
 		);
 
-		// Draw flooring
-		// var floorTile = Game.images["floor"];
-		// var tilesAcross = (Game.width / floorTile.width) + 1;
-		// var tilesDown = (Game.height / floorTile.height) + 1;
-		// var startX = Math.floor(this.camera.x / floorTile.width);
-		// var startY = Math.floor(this.camera.y / floorTile.height);
-		// for (var y = 0; y < tilesDown; y++) {
-		// 	for (var x = 0; x < tilesAcross; x++) {
-		// 		Game.context2d.drawImage(floorTile,
-		// 			(startX + x)*floorTile.width - this.camera.x,
-		// 			(startY + y)*floorTile.height - this.camera.y);
-		// 	};
-		// };
-
 		// Draw everything else
 		for (var i = 0; i < this.entities.length; i++) {
 			var entity = this.entities[i];
+			if (!entity.image) continue; // Skip invisible entities
+
 			// Fancy drawing with rotation and everything!
 			Game.context2d.translate(entity.x - this.camera.x, entity.y - this.camera.y);
 			if (entity.rotation != 0) {
