@@ -526,7 +526,7 @@ function PlayScene() {
 
 			for (var i=0; i<this.playScene.entities.length; i++) {
 				var entity = this.playScene.entities[i];
-				if (entity.team == this.team || !entity.solid) continue;
+				if (entity.team == this.team || entity.isBullet) continue;
 				if (overlaps(this, entity)) {
 
 					if (entity.team != TEAM_NONE) {
