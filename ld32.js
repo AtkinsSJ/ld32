@@ -586,6 +586,16 @@ function PlayScene() {
 				entity.width, entity.height
 			);
 		}
+
+		// Draw UI
+		Game.context2d.fillStyle = "rgba(0,0,0,0.5)";
+		Game.context2d.fillRect(0,0, Game.width, 30);
+
+		Game.context2d.font = "20px sans-serif";
+		Game.context2d.fillStyle = "white";
+		Game.context2d.textAlign = "left";
+		Game.context2d.textBaseline = "middle";
+		Game.context2d.fillText("Health: " + this.player.health, 5, 15);
 	};
 
 	this.getMousePosition = function() {
