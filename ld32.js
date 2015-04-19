@@ -471,7 +471,6 @@ function PlayScene() {
 			}
 		};
 
-
 		this.shootPlayer = function() {
 			if (this.shootCooldown > 0) return;
 
@@ -630,19 +629,26 @@ function PlayScene() {
 		this.camera.x =  cx;
 		this.camera.y =  cy;
 
+		// Draw table
+		Game.context2d.drawImage(
+			Game.images["background"],
+			this.camera.x, this.camera.y, Game.width, Game.height, // Source rect
+			0,0, Game.width, Game.height // Dest rect
+		);
+
 		// Draw flooring
-		var floorTile = Game.images["floor"];
-		var tilesAcross = (Game.width / floorTile.width) + 1;
-		var tilesDown = (Game.height / floorTile.height) + 1;
-		var startX = Math.floor(this.camera.x / floorTile.width);
-		var startY = Math.floor(this.camera.y / floorTile.height);
-		for (var y = 0; y < tilesDown; y++) {
-			for (var x = 0; x < tilesAcross; x++) {
-				Game.context2d.drawImage(floorTile,
-					(startX + x)*floorTile.width - this.camera.x,
-					(startY + y)*floorTile.height - this.camera.y);
-			};
-		};
+		// var floorTile = Game.images["floor"];
+		// var tilesAcross = (Game.width / floorTile.width) + 1;
+		// var tilesDown = (Game.height / floorTile.height) + 1;
+		// var startX = Math.floor(this.camera.x / floorTile.width);
+		// var startY = Math.floor(this.camera.y / floorTile.height);
+		// for (var y = 0; y < tilesDown; y++) {
+		// 	for (var x = 0; x < tilesAcross; x++) {
+		// 		Game.context2d.drawImage(floorTile,
+		// 			(startX + x)*floorTile.width - this.camera.x,
+		// 			(startY + y)*floorTile.height - this.camera.y);
+		// 	};
+		// };
 
 		// Draw everything else
 		for (var i = 0; i < this.entities.length; i++) {
@@ -735,9 +741,10 @@ function start() {
 
 	// Load things!
 	var imagesToLoad = [
-		"bullet",
+		"background",
 		"broccoli",
 		"broccoli-bullet",
+		"bullet",
 		"floor",
 		"mash",
 		"player",
