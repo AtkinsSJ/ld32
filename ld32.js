@@ -236,9 +236,18 @@ function PlayScene() {
 				}
 			};
 
-			// Stay in bounds! Not actually needed.
+			// Stay in bounds!
+			var xx = this.x,
+				yy = this.y;
 			this.x = clamp(this.x, this.w2, this.playScene.width-this.w2);
 			this.y = clamp(this.y, this.h2, this.playScene.height-this.h2);
+			// Bounce off screen edges
+			if (bounce && (xx != this.x)) {
+				this.v.x = -this.v.x;
+			}
+			if (bounce && (yy != this.y)) {
+				this.v.y = -this.v.y;
+			}
 		};
 
 		this.update = function(deltaTime) {};
@@ -371,7 +380,7 @@ function PlayScene() {
 		this.maxSpeed = 300;
 
 		this.update = function(deltaTime) {
-			if (distance(this, this.player) < 300) {
+			if (distance(this, this.player) < 500) {
 				// Accelerate towards player
 				var toPlayer = {x: this.player.x - this.x,
 								y: this.player.y - this.y};
@@ -462,19 +471,20 @@ function PlayScene() {
 			}
 
 			var playerDistance = distance(this, this.player);
-			if (playerDistance < 500) {
+
+			if (playerDistance < 600) {
 				// Shoot!
 				this.shootPlayer();
+			}
 
-				if (playerDistance < 300) {
-					// RUN AWAY!!!!
-					var v = {x:this.x - this.player.x,
-							 y: this.y - this.player.y};
-					v = normalise(v);
-					v.x *= this.speed * deltaTime;
-					v.y *= this.speed * deltaTime;
-					this.moveAroundMap(v.x, v.y);
-				}
+			if (playerDistance < 300) {
+				// RUN AWAY!!!!
+				var v = {x:this.x - this.player.x,
+						 y: this.y - this.player.y};
+				v = normalise(v);
+				v.x *= this.speed * deltaTime;
+				v.y *= this.speed * deltaTime;
+				this.moveAroundMap(v.x, v.y);
 			}
 		};
 
