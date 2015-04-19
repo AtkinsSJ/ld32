@@ -398,7 +398,7 @@ function PlayScene() {
 		Monster.call(this, playScene, x,y, Game.images["mash"], player, 5 * size, 1, 10 * size, false, Game.sounds["mash-hurt"], Game.sounds["mash-die"]);
 		this.speed = 100 / size;
 		this.size = size;
-		var scale = this.size / 5;
+		var scale = this.size / 3;
 		this.width *= scale;
 		this.height *= scale;
 		this.w2 = this.width/2;
@@ -602,7 +602,7 @@ function PlayScene() {
 						this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 					case 4: { // Monster Mash!
-						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
+						this.entities.push(new MonsterMash(this, xx, yy, this.player, 3));
 					} break;
 					case 5: { // Broccoli
 						this.entities.push(new Broccoli(this, xx, yy, this.player));
