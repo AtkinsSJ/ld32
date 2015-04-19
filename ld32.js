@@ -96,22 +96,17 @@ function limit(vector, maxLength) {
 }
 
 function overlaps(a,b) {
-	var minX = b.x - a.width,
-		maxX = b.x + b.width,
-		minY = b.y - a.height,
-		maxY = b.y + b.height;
+	var minX = b.x - b.w2 - a.w2,
+		maxX = minX + b.width + a.width,
+		minY = b.y - b.w2 - a.h2,
+		maxY = minY + b.height + a.height;
 
 	return (a.x >= minX) && (a.x < maxX) && (a.y >= minY) && (a.y < maxY);
 }
 
 function distance(a,b) {
-	var centreAX = a.x + a.width/2,
-		centreAY = a.y + a.height/2,
-		centreBX = b.x + b.width/2,
-		centreBY = b.y + b.height/2;
-
-	var xDiff = Math.abs(centreAX - centreBX),
-		yDiff = Math.abs(centreAY - centreBY);
+	var xDiff = Math.abs(a.x - b.x),
+		yDiff = Math.abs(a.y - b.y);
 	return Math.sqrt(xDiff*xDiff + yDiff*yDiff);
 }
 
@@ -152,14 +147,17 @@ function PlayScene() {
 		this.image = image;
 		this.width = this.image.width;
 		this.height = this.image.height;
+		this.w2 = this.width/2;
+		this.h2 = this.height/2;
 		this.team = team;
 		this.solid = solid;
 		this.alive = true;
+		this.rotation = 0;
 
 		this.hurtSound = hurtSound;
 		this.dieSound = dieSound;
 
-		this.moveAroundMap = function(xDiff, yDiff, player) {
+		this.moveAroundMap = function(xDiff, yDiff, player, bounce) {
 			var oldX = this.x,
 				oldY = this.y;
 			this.x += xDiff;
@@ -171,10 +169,13 @@ function PlayScene() {
 				if (other.solid && (other != this)) {
 					// Don't walk through walls and creatures
 					if (overlaps(this, other)) {
+						console.log("Overlap!");
 
-						if (other == player) {
-							// Damage the player!
+						// If player, damage them!
+						if (other.team == TEAM_PLAYER) {
 							other.takeDamage(this.damage);
+						} else if (bounce) {
+							Game.sounds["sprout-bounce"].play();
 						}
 
 						// Stops the (non-solid) mash from bouncing off the player.
@@ -191,18 +192,32 @@ function PlayScene() {
 							this.x = t;
 
 							if (overlapsX) {
-								if (this.x > oldX) {
-									this.x = other.x - this.width - 1;
-								} else if (this.x < oldX) {
-									this.x = other.x + other.width + 1;
+								console.log("Overlap in X!");
+								if (this.x > oldX) { // Going Right
+									console.log("Was going right");
+									this.x = other.x - other.w2 - this.w2 - 1;
+								} else if (this.x < oldX) { // Going Left
+									console.log("Was going left");
+									this.x = other.x + other.w2 + this.w2 + 1;
+								}
+
+								if (bounce) {
+									this.v.x = -this.v.x;
 								}
 							}
 
 							if (overlapsY) {
-								if (this.y > oldY) {
-									this.y = other.y - this.height - 1;
-								} else if (this.y < oldY) {
-									this.y = other.y + other.height + 1;
+								console.log("Overlap in Y!");
+								if (this.y > oldY) { // Going Down
+									console.log("Was going down");
+									this.y = other.y - other.h2 - this.h2 - 1;
+								} else if (this.y < oldY) { // Going Up
+									console.log("Was going up");
+									this.y = other.y + other.h2 + this.h2 + 1;
+								}
+
+								if (bounce) {
+									this.v.y = -this.v.y;
 								}
 							}
 						}
@@ -274,6 +289,8 @@ function PlayScene() {
 			if (Game.mouse.down) {
 				this.shootAt(this.playScene.getMousePosition());
 			}
+
+			this.rotation += 90 * deltaTime;
 		};
 
 		this.shootAt = function(target) {
@@ -370,8 +387,8 @@ function PlayScene() {
 		this.update = function(deltaTime) {
 			if (distance(this, this.player) < 300) {
 				// Accelerate towards player
-				var toPlayer = {x: (this.player.x - this.player.width/2) - (this.x + this.width/2),
-								y: (this.player.y - this.player.height/2) - (this.y + this.height/2)};
+				var toPlayer = {x: this.player.x - this.x,
+								y: this.player.y - this.y};
 				toPlayer = normalise(toPlayer);
 				var acc = this.acceleration * deltaTime;
 				this.v.x += toPlayer.x * acc;
@@ -380,58 +397,59 @@ function PlayScene() {
 				this.v = limit(this.v, this.maxSpeed);
 			}
 
+			this.moveAroundMap(this.v.x * deltaTime, this.v.y * deltaTime, this.player, true);
 			// This is *almost* a copy of moveAroundMap(), but with bouncing.
-			var oldX = this.x,
-				oldY = this.y;
-			this.x += this.v.x * deltaTime;
-			this.y += this.v.y * deltaTime;
+			// var oldX = this.x,
+			// 	oldY = this.y;
+			// this.x += this.v.x * deltaTime;
+			// this.y += this.v.y * deltaTime;
 
-			var entities = this.playScene.entities;
-			for (var i = 0; i < entities.length; i++) {
-				var other = entities[i];
-				if (other.solid && (other != this)) {
-					// Don't walk through walls and creatures
-					if (overlaps(this, other)) {
+			// var entities = this.playScene.entities;
+			// for (var i = 0; i < entities.length; i++) {
+			// 	var other = entities[i];
+			// 	if (other.solid && (other != this)) {
+			// 		// Don't walk through walls and creatures
+			// 		if (overlaps(this, other)) {
 
-						// If player, damage them!
-						if (other.team == TEAM_PLAYER) {
-							other.takeDamage(this.damage);
-						} else {
-							Game.sounds["sprout-bounce"].play();
-						}
+			// 			// If player, damage them!
+			// 			if (other.team == TEAM_PLAYER) {
+			// 				other.takeDamage(this.damage);
+			// 			} else {
+			// 				Game.sounds["sprout-bounce"].play();
+			// 			}
 
-						var t = this.y;
-						this.y = oldY;
-						var overlapsX = overlaps(this,other);
-						this.y = t;
+			// 			var t = this.y;
+			// 			this.y = oldY;
+			// 			var overlapsX = overlaps(this,other);
+			// 			this.y = t;
 
-						t = this.x;
-						this.x = oldX;
-						var overlapsY = overlaps(this,other);
-						this.x = t;
+			// 			t = this.x;
+			// 			this.x = oldX;
+			// 			var overlapsY = overlaps(this,other);
+			// 			this.x = t;
 
-						if (overlapsX) {
-							if (this.x > oldX) {
-								this.x = other.x - this.width - 1;
-							} else if (this.x < oldX) {
-								this.x = other.x + other.width + 1;
-							}
+			// 			if (overlapsX) {
+			// 				if (this.x > oldX) { // Going Right
+			// 					this.x = other.x - other.w2 - this.w2 - 1;
+			// 				} else if (this.x < oldX) { // Going Left
+			// 					this.x = other.x + other.w2 + this.w2 + 1;
+			// 				}
 
-							this.v.x = -this.v.x;
-						}
+			// 				this.v.x = -this.v.x;
+			// 			}
 
-						if (overlapsY) {
-							if (this.y > oldY) {
-								this.y = other.y - this.height - 1;
-							} else if (this.y < oldY) {
-								this.y = other.y + other.height + 1;
-							}
+			// 			if (overlapsY) {
+			// 				if (this.y > oldY) { // Going Down
+			// 					this.y = other.y - other.h2 - this.h2 - 1;
+			// 				} else if (this.y < oldY) { // Going Up
+			// 					this.y = other.y + other.h2 + this.h2 + 1;
+			// 				}
 
-							this.v.y = -this.v.y;
-						}
-					}
-				}
-			};
+			// 				this.v.y = -this.v.y;
+			// 			}
+			// 		}
+			// 	}
+			// };
 		};
 	}
 
@@ -448,6 +466,8 @@ function PlayScene() {
 		var scale = this.size / 5;
 		this.width *= scale;
 		this.height *= scale;
+		this.w2 = this.width/2;
+		this.h2 = this.height/2;
 
 		this.update = function(deltaTime) {
 			if (distance(this, this.player) < 700) {
@@ -470,17 +490,13 @@ function PlayScene() {
 
 					// Spawn smaller mashes!
 					// Attempt to spawn 4, each of which will fail if there isn't room.
-					var w2 = this.width/2,
-						h2 = this.height/2;
 					var childW2 = this.image.width * (this.size-1)*0.1;
 					var childH2 = this.image.width * (this.size-1)*0.1;
-					var cx = this.x + this.width/2 - childW2,
-						cy = this.y + this.height/2 - childH2;
 					var positions = [
-						{x: cx - w2, y: cy},
-						{x: cx + w2, y: cy},
-						{x: cx, y: cy - h2},
-						{x: cx, y: cy + h2},
+						{x: this.x - childW2, 	y: this.y},
+						{x: this.x + childW2, 	y: this.y},
+						{x: this.x, 			y: this.y - childH2},
+						{x: this.x, 			y: this.y + childH2},
 					];
 					for (var i=0; i<positions.length; i++) {
 						var child = new MonsterMash(this.playScene, positions[i].x, positions[i].y, this.player, this.size - 1);
@@ -577,8 +593,8 @@ function PlayScene() {
 			sproutImage = Game.images["sprout"];
 		for (var y=0; y<this.tilesY; y++) {
 			for (var x=0; x<this.tilesX; x++) {
-				var xx = x * tileW,
-					yy = y * tileH;
+				var xx = (x + 0.5) * tileW,
+					yy = (y + 0.5) * tileH;
 				switch (level[y][x]) {
 					case 1:	{
 						this.entities.push(new Wall(this, xx, yy, wallImage));
@@ -586,13 +602,12 @@ function PlayScene() {
 					case 2:	{
 						this.player.x = xx;
 						this.player.y = yy;
-						this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 					case 3: { // Sprout!
-						// this.entities.push(new Sprout(this, xx, yy, this.player));
+						this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 					case 4: { // Monster Mash!
-						// this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
+						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
 					} break;
 				}
 			}
@@ -616,8 +631,8 @@ function PlayScene() {
 		});
 
 		// Camera
-		var cx = this.player.x + (this.player.width - Game.width)/2;
-		var cy = this.player.y + (this.player.height - Game.height)/2;
+		var cx = this.player.x - Game.width/2;
+		var cy = this.player.y - Game.height/2;
 		cx = clamp(cx, 0, this.width - Game.width);
 		cy = clamp(cy, 0, this.height - Game.height);
 		this.camera.x =  cx;
@@ -640,10 +655,18 @@ function PlayScene() {
 		// Draw everything else
 		for (var i = 0; i < this.entities.length; i++) {
 			var entity = this.entities[i];
-			Game.context2d.drawImage(entity.image,
-				entity.x - this.camera.x, entity.y - this.camera.y,
-				entity.width, entity.height
-			);
+			// if (entity.rotation == 0) {
+			// 	Game.context2d.drawImage(entity.image,
+			// 		entity.x - this.camera.x, entity.y - this.camera.y,
+			// 		entity.width, entity.height
+			// 	);
+			// } else {
+				// Rotation code!
+				Game.context2d.translate(entity.x - this.camera.x, entity.y - this.camera.y);
+				// Game.context2d.rotate(entity.rotation * Math.PI / 180);
+				Game.context2d.drawImage(entity.image, -entity.w2,-entity.h2, entity.width, entity.height);
+				Game.context2d.setTransform(1, 0, 0, 1, 0, 0);
+			// }
 		}
 
 		// Draw UI
