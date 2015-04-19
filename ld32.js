@@ -457,6 +457,23 @@ function PlayScene() {
 		}
 	}
 
+	function Broccoli(playScene, x,y, player) {
+		Monster.call(this, playScene, x,y, Game.images["broccoli"], player, 20, 0, 50, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
+		this.speed = 300;
+
+		this.update = function(deltaTime) {
+			if (distance(this, this.player) < 100) {
+				// RUN AWAY!!!!
+				var v = {x:this.x - this.player.x,
+						 y: this.y - this.player.y};
+				v = normalise(v);
+				v.x *= this.speed * deltaTime;
+				v.y *= this.speed * deltaTime;
+				this.moveAroundMap(v.x, v.y);
+			}
+		};
+	}
+
 	function Bullet(playScene, x,y, image, team, vx,vy, damage) {
 		Entity.call(this, playScene, x,y, image, team, false);
 		this.vx = vx;
@@ -503,7 +520,7 @@ function PlayScene() {
 			[1,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,1,],
 			[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,1,],
 			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,3,0,0,0,0,1,],
-			[1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
+			[1,0,0,0,0,0,5,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,3,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,],
 			[1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,3,0,0,0,3,0,0,1,1,1,1,0,0,0,0,3,0,1,1,1,1,1,],
@@ -551,6 +568,9 @@ function PlayScene() {
 					} break;
 					case 4: { // Monster Mash!
 						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
+					} break;
+					case 5: { // Broccoli
+						this.entities.push(new Broccoli(this, xx, yy, this.player));
 					} break;
 				}
 			}
@@ -688,6 +708,7 @@ function start() {
 	var imagesToLoad = [
 		"bullet",
 		"broccoli",
+		"broccoli-bullet",
 		"floor",
 		"mash",
 		"player",
