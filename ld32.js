@@ -153,7 +153,7 @@ function MenuScene() {
 
 function PlayScene() {
 
-	function Entity(playScene, x,y, image, team, solid, hurtSound, dieSound) {
+	function Entity(playScene, x,y, image, team, solid, isBullet, hurtSound, dieSound) {
 		this.playScene = playScene;
 		this.x = x;
 		this.y = y;
@@ -166,6 +166,7 @@ function PlayScene() {
 		this.solid = solid;
 		this.alive = true;
 		this.rotation = 0;
+		this.isBullet = isBullet;
 
 		this.hurtSound = hurtSound;
 		this.dieSound = dieSound;
@@ -264,7 +265,7 @@ function PlayScene() {
 	}
 
 	function Player(playScene, x,y) {
-		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true, Game.sounds["player-hurt"], Game.sounds["player-die"]);
+		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true, false, Game.sounds["player-hurt"], Game.sounds["player-die"]);
 		this.speed = 200;
 		this.health = 100;
 		this.shootDelay = 0.2;
@@ -323,7 +324,8 @@ function PlayScene() {
 			var entities = this.playScene.entities;
 			var foundEnemies = false;
 			for (var i = 0; i < entities.length; i++) {
-				if (entities[i].team == TEAM_ENEMY && entities[i].alive) {
+				var entity = entities[i];
+				if (entity.team == TEAM_ENEMY && entity.alive && !entity.isBullet) {
 					foundEnemies = true;
 					break;
 				}
@@ -338,7 +340,7 @@ function PlayScene() {
 	}
 
 	function Monster(playScene, x,y, image, player, health, damage, points, solid, hurtSound, dieSound) {
-		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, solid, hurtSound, dieSound);
+		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, solid, false, hurtSound, dieSound);
 		this.player = player;
 		this.health = health;
 		this.damage = damage;
@@ -357,26 +359,6 @@ function PlayScene() {
 			}
 		};
 	};
-
-	/*function Swarmer(playScene, x,y, image, player, speed, health) {
-		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, true);
-		this.player = player;
-		this.speed = speed;
-		this.health = health;
-
-		this.update = function(deltaTime) {
-			if (distance(this, this.player) < 300) {
-				var diff = {x: this.player.x - this.x,
-							y: this.player.y - this.y};
-				diff = normalise(diff);
-				var v = this.speed * deltaTime;
-				diff.x *= v;
-				diff.y *= v;
-
-				this.moveAroundMap(diff.x, diff.y);
-			}
-		};
-	}*/
 
 	function Sprout(playScene, x,y, player) {
 		Monster.call(this, playScene, x,y, Game.images["sprout"], player, 10, 5, 25, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
@@ -521,7 +503,7 @@ function PlayScene() {
 	}
 
 	function Bullet(playScene, x,y, image, team, vx,vy, damage, rotation) {
-		Entity.call(this, playScene, x,y, image, team, false);
+		Entity.call(this, playScene, x,y, image, team, false, true);
 		this.vx = vx;
 		this.vy = vy;
 		this.damage = damage;
@@ -555,7 +537,7 @@ function PlayScene() {
 	}
 
 	function Wall(playScene, x,y, image) {
-		Entity.call(this, playScene, x, y, image, TEAM_NONE, true);
+		Entity.call(this, playScene, x, y, image, TEAM_NONE, true, false);
 	}
 
 	this.start = function() {
