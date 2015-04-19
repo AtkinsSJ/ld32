@@ -145,7 +145,7 @@ function MenuScene() {
 
 function PlayScene() {
 
-	function Entity(playScene, x,y, image, team, solid) {
+	function Entity(playScene, x,y, image, team, solid, hurtSound, dieSound) {
 		this.playScene = playScene;
 		this.x = x;
 		this.y = y;
@@ -155,6 +155,9 @@ function PlayScene() {
 		this.team = team;
 		this.solid = solid;
 		this.alive = true;
+
+		this.hurtSound = hurtSound;
+		this.dieSound = dieSound;
 
 		this.moveAroundMap = function(xDiff, yDiff, player) {
 			var oldX = this.x,
@@ -220,7 +223,10 @@ function PlayScene() {
 			this.health -= damage;
 			if (this.health <= 0) {
 				// DEAD!
+				this.dieSound.play();
 				this.alive = false;
+			} else {
+				this.hurtSound.play();
 			}
 		};
 
@@ -237,7 +243,7 @@ function PlayScene() {
 	}
 
 	function Player(playScene, x,y) {
-		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true);
+		Entity.call(this, playScene, x,y, Game.images["player"], TEAM_PLAYER, true, Game.sounds["player-hurt"], Game.sounds["player-die"]);
 		this.speed = 200;
 		this.health = 100;
 		this.shootDelay = 0.2;
@@ -287,6 +293,8 @@ function PlayScene() {
 				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y, 5
 			));
 
+			Game.sounds["player-fire"].play();
+
 			this.shootCooldown = this.shootDelay;
 		};
 
@@ -311,8 +319,8 @@ function PlayScene() {
 		};
 	}
 
-	function Monster(playScene, x,y, image, player, health, damage, points, solid) {
-		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, solid);
+	function Monster(playScene, x,y, image, player, health, damage, points, solid, hurtSound, dieSound) {
+		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, solid, hurtSound, dieSound);
 		this.player = player;
 		this.health = health;
 		this.damage = damage;
@@ -324,6 +332,10 @@ function PlayScene() {
 				// DEAD!
 				this.alive = false;
 				this.player.addPoints(this.points);
+				
+				this.dieSound.play();
+			} else {
+				this.hurtSound.play();
 			}
 		};
 	};
@@ -349,7 +361,7 @@ function PlayScene() {
 	}*/
 
 	function Sprout(playScene, x,y, player) {
-		Monster.call(this, playScene, x,y, Game.images["sprout"], player, 10, 5, 25, true);
+		Monster.call(this, playScene, x,y, Game.images["sprout"], player, 10, 5, 25, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
 		this.v = {x:0, y:0};
 		this.acceleration = 300;
 		this.maxSpeed = 300;
@@ -383,6 +395,8 @@ function PlayScene() {
 						// If player, damage them!
 						if (other.team == TEAM_PLAYER) {
 							other.takeDamage(this.damage);
+						} else {
+							Game.sounds["sprout-bounce"].play();
 						}
 
 						var t = this.y;
@@ -427,7 +441,7 @@ function PlayScene() {
 		HE DID THE MASH, HE DID THE MONSTER MASH!
 	*/
 	function MonsterMash(playScene, x,y, player, size) {
-		Monster.call(this, playScene, x,y, Game.images["mash"], player, 5 * size, 1, 10 * size, false);
+		Monster.call(this, playScene, x,y, Game.images["mash"], player, 5 * size, 1, 10 * size, false, Game.sounds["mash-hurt"], Game.sounds["mash-die"]);
 		this.speed = 100 / size;
 		this.size = size;
 		var scale = this.size / 5;
@@ -476,6 +490,9 @@ function PlayScene() {
 				}
 				this.alive = false;
 				this.player.addPoints(this.points);
+				this.dieSound.play();
+			} else {
+				this.hurtSound.play();
 			}
 		}
 	}
@@ -708,7 +725,13 @@ function start() {
 	];
 	var imagesLoaded = 0;
 	var soundsToLoad = [
-		
+		"player-fire",
+		"player-hurt",
+		"sprout-bounce",
+		"sprout-hurt",
+		"sprout-die",
+		"mash-hurt",
+		"mash-die",
 	];
 	var soundsLoaded = 0;
 
