@@ -332,7 +332,7 @@ function PlayScene() {
 				// DEAD!
 				this.alive = false;
 				this.player.addPoints(this.points);
-				
+
 				this.dieSound.play();
 			} else {
 				this.hurtSound.play();
@@ -727,6 +727,7 @@ function start() {
 	var soundsToLoad = [
 		"player-fire",
 		"player-hurt",
+		"player-die",
 		"sprout-bounce",
 		"sprout-hurt",
 		"sprout-die",
