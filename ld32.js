@@ -130,7 +130,7 @@ function MenuScene() {
 		// Go to play scene
 		if (wasKeyJustPressed(32)) {
 			Game.scene = new PlayScene();
-			//Game.sounds["Start"].play();
+			Game.sounds["select"].play();
 		}
 
 		// Render text
@@ -678,7 +678,7 @@ function PlayScene() {
 
 			if (wasKeyJustPressed(32)) {
 				Game.scene = new MenuScene();
-				//Game.sounds["Start"].play();
+				Game.sounds["select"].play();
 			}
 		}
 	};
@@ -736,6 +736,7 @@ function start() {
 		"sprout-die",
 		"mash-hurt",
 		"mash-die",
+		"select",
 	];
 	var soundsLoaded = 0;
 
