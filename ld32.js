@@ -296,18 +296,14 @@ function PlayScene() {
 		this.shootAt = function(target) {
 			if (this.shootCooldown > 0) return;
 
-			var cx = this.x + 8,
-				cy = this.y + 8;
-			var tx = target.x - 2,
-				ty = target.y - 2;
-			var diff = {x: tx - cx,
-						y: ty - cy};
+			var diff = {x: target.x - this.x,
+						y: target.y - this.y};
 			diff = normalise(diff);
 			diff.x *= 350;
 			diff.y *= 350;
 
 			this.playScene.entities.push(new Bullet(
-				this.playScene, cx, cy, Game.images["bullet"], this.team, diff.x, diff.y, 5
+				this.playScene, this.x, this.y, Game.images["bullet"], this.team, diff.x, diff.y, 5
 			));
 
 			Game.sounds["player-fire"].play();
@@ -398,6 +394,7 @@ function PlayScene() {
 			}
 
 			this.moveAroundMap(this.v.x * deltaTime, this.v.y * deltaTime, this.player, true);
+			this.rotation += (this.v.x + this.v.y) * deltaTime * 5;
 		};
 	}
 
