@@ -289,9 +289,31 @@ function PlayScene() {
 
 			this.shootCooldown = this.shootDelay;
 		};
+
+		this.addPoints = function(points) {
+			this.score += points;
+			this.scoreText = pad(this.score, 7);
+		};
 	}
 
-	function Swarmer(playScene, x,y, image, player, speed, health) {
+	function Monster(playScene, x,y, image, player, health, damage, points, solid) {
+		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, solid);
+		this.player = player;
+		this.health = health;
+		this.damage = damage;
+		this.points = points;
+
+		this.takeDamage = function(damage) {
+			this.health -= damage;
+			if (this.health <= 0) {
+				// DEAD!
+				this.player.addPoints(this.points);
+				this.alive = false;
+			}
+		};
+	};
+
+	/*function Swarmer(playScene, x,y, image, player, speed, health) {
 		Entity.call(this, playScene, x,y, image, TEAM_ENEMY, true);
 		this.player = player;
 		this.speed = speed;
@@ -309,16 +331,13 @@ function PlayScene() {
 				this.moveAroundMap(diff.x, diff.y);
 			}
 		};
-	}
+	}*/
 
 	function Sprout(playScene, x,y, player) {
-		Entity.call(this, playScene, x,y, Game.images["sprout"], TEAM_ENEMY, true);
-		this.player = player;
-		this.health = 10;
+		Monster.call(this, playScene, x,y, Game.images["sprout"], player, 10, 5, 25, true);
 		this.v = {x:0, y:0};
 		this.acceleration = 300;
 		this.maxSpeed = 300;
-		this.damage = 5;
 
 		this.update = function(deltaTime) {
 			if (distance(this, this.player) < 300) {
@@ -393,11 +412,8 @@ function PlayScene() {
 		HE DID THE MASH, HE DID THE MONSTER MASH!
 	*/
 	function MonsterMash(playScene, x,y, player, size) {
-		Entity.call(this, playScene, x,y, Game.images["mash"], TEAM_ENEMY, false);
-		this.player = player;
+		Monster.call(this, playScene, x,y, Game.images["mash"], player, 5 * size, 1, 10 * size, false);
 		this.speed = 100 / size;
-		this.health = 5 * size;
-		this.damage = 1;
 		this.size = size;
 		var scale = this.size / 5;
 		this.width *= scale;
@@ -444,6 +460,7 @@ function PlayScene() {
 					}
 				}
 				this.alive = false;
+				this.player.addPoints(this.points);
 			}
 		}
 	}
