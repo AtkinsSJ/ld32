@@ -298,7 +298,7 @@ function PlayScene() {
 			var entities = this.playScene.entities;
 			var foundEnemies = false;
 			for (var i = 0; i < entities.length; i++) {
-				if (entities[i].team == TEAM_ENEMY) {
+				if (entities[i].team == TEAM_ENEMY && entities[i].alive) {
 					foundEnemies = true;
 					break;
 				}
@@ -322,8 +322,8 @@ function PlayScene() {
 			this.health -= damage;
 			if (this.health <= 0) {
 				// DEAD!
-				this.player.addPoints(this.points);
 				this.alive = false;
+				this.player.addPoints(this.points);
 			}
 		};
 	};
@@ -649,10 +649,12 @@ function PlayScene() {
 
 			var message = this.gameWon ? "YOU WIN! :D" : "You were defeated by angry vegetables. :(";
 
+			Game.context2d.font = "28px sans-serif";
 			Game.context2d.fillStyle = "white";
 			Game.context2d.textAlign = "center";
 			Game.context2d.fillText(message, Game.width/2, Game.height/2);
 
+			Game.context2d.font = "20px sans-serif";
 			Game.context2d.fillText("Press space to return to the menu.", Game.width/2, Game.height * 0.75);
 
 			if (wasKeyJustPressed(32)) {
