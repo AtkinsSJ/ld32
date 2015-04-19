@@ -28,7 +28,6 @@ window.onkeydown = function(e) {
 	e = e || window.event;
 	Game.keysPressed[e.keyCode] = true;
 	e.preventDefault();
-	console.log("Just pressed ", e.keyCode);
 };
 window.onkeyup = function(e) {
 	e = e || window.event;
@@ -453,26 +452,29 @@ function PlayScene() {
 	function Broccoli(playScene, x,y, player) {
 		Monster.call(this, playScene, x,y, Game.images["broccoli"], player, 30, 0, 50, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
 		this.speed = 300;
-		this.shootCooldown = 0;
-		this.shootDelay = 1;
+		this.shootDelay = 3;
+		this.shootCooldown = Math.random() * this.shootDelay;
 		this.shootAngle = 20;
 
 		this.update = function(deltaTime) {
-			// Shoot!
 			if (this.shootCooldown > 0) {
 				this.shootCooldown -= deltaTime;
 			}
-			this.shootPlayer();
 
 			var playerDistance = distance(this, this.player);
-			if (playerDistance < 300) {
-				// RUN AWAY!!!!
-				var v = {x:this.x - this.player.x,
-						 y: this.y - this.player.y};
-				v = normalise(v);
-				v.x *= this.speed * deltaTime;
-				v.y *= this.speed * deltaTime;
-				this.moveAroundMap(v.x, v.y);
+			if (playerDistance < 500) {
+				// Shoot!
+				this.shootPlayer();
+
+				if (playerDistance < 300) {
+					// RUN AWAY!!!!
+					var v = {x:this.x - this.player.x,
+							 y: this.y - this.player.y};
+					v = normalise(v);
+					v.x *= this.speed * deltaTime;
+					v.y *= this.speed * deltaTime;
+					this.moveAroundMap(v.x, v.y);
+				}
 			}
 		};
 
