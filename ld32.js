@@ -315,6 +315,7 @@ function PlayScene() {
 			if (!foundEnemies) {
 				// YOU WIN!
 				this.playScene.gameWon = true;
+				Game.sounds["player-win"].play();
 			}
 		};
 	}
@@ -585,12 +586,13 @@ function PlayScene() {
 					case 2:	{
 						this.player.x = xx;
 						this.player.y = yy;
-					} break;
-					case 3: { // Sprout!
 						this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
+					case 3: { // Sprout!
+						// this.entities.push(new Sprout(this, xx, yy, this.player));
+					} break;
 					case 4: { // Monster Mash!
-						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
+						// this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
 					} break;
 				}
 			}
@@ -728,6 +730,7 @@ function start() {
 		"player-fire",
 		"player-hurt",
 		"player-die",
+		"player-win",
 		"sprout-bounce",
 		"sprout-hurt",
 		"sprout-die",
