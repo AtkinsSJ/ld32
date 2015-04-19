@@ -398,58 +398,6 @@ function PlayScene() {
 			}
 
 			this.moveAroundMap(this.v.x * deltaTime, this.v.y * deltaTime, this.player, true);
-			// This is *almost* a copy of moveAroundMap(), but with bouncing.
-			// var oldX = this.x,
-			// 	oldY = this.y;
-			// this.x += this.v.x * deltaTime;
-			// this.y += this.v.y * deltaTime;
-
-			// var entities = this.playScene.entities;
-			// for (var i = 0; i < entities.length; i++) {
-			// 	var other = entities[i];
-			// 	if (other.solid && (other != this)) {
-			// 		// Don't walk through walls and creatures
-			// 		if (overlaps(this, other)) {
-
-			// 			// If player, damage them!
-			// 			if (other.team == TEAM_PLAYER) {
-			// 				other.takeDamage(this.damage);
-			// 			} else {
-			// 				Game.sounds["sprout-bounce"].play();
-			// 			}
-
-			// 			var t = this.y;
-			// 			this.y = oldY;
-			// 			var overlapsX = overlaps(this,other);
-			// 			this.y = t;
-
-			// 			t = this.x;
-			// 			this.x = oldX;
-			// 			var overlapsY = overlaps(this,other);
-			// 			this.x = t;
-
-			// 			if (overlapsX) {
-			// 				if (this.x > oldX) { // Going Right
-			// 					this.x = other.x - other.w2 - this.w2 - 1;
-			// 				} else if (this.x < oldX) { // Going Left
-			// 					this.x = other.x + other.w2 + this.w2 + 1;
-			// 				}
-
-			// 				this.v.x = -this.v.x;
-			// 			}
-
-			// 			if (overlapsY) {
-			// 				if (this.y > oldY) { // Going Down
-			// 					this.y = other.y - other.h2 - this.h2 - 1;
-			// 				} else if (this.y < oldY) { // Going Up
-			// 					this.y = other.y + other.h2 + this.h2 + 1;
-			// 				}
-
-			// 				this.v.y = -this.v.y;
-			// 			}
-			// 		}
-			// 	}
-			// };
 		};
 	}
 
