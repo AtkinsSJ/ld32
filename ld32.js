@@ -95,6 +95,19 @@ function limit(vector, maxLength) {
 	return vector;
 }
 
+function angle(vector) {
+	return Math.atan2(vector.y,vector.x) * 180 / Math.PI;
+}
+
+function vectorFromAngle(angle, length) {
+	length = length || 1;
+	var a = angle * Math.PI / 180;
+	return {
+		x: Math.cos(a) * length, 
+		y: Math.sin(a) * length, 
+	};
+}
+
 function overlaps(a,b) {
 	var minX = b.x - b.w2 - a.w2,
 		maxX = minX + b.width + a.width,
@@ -453,9 +466,16 @@ function PlayScene() {
 	function Broccoli(playScene, x,y, player) {
 		Monster.call(this, playScene, x,y, Game.images["broccoli"], player, 20, 0, 50, true, Game.sounds["sprout-hurt"], Game.sounds["sprout-die"]);
 		this.speed = 300;
+		this.shootCooldown = 0;
+		this.shootDelay = 1;
+		this.shootAngle = 20;
 
 		this.update = function(deltaTime) {
-			if (distance(this, this.player) < 100) {
+			if (this.shootCooldown > 0) {
+				this.shootCooldown -= deltaTime;
+			}
+			var playerDistance = distance(this, this.player);
+			if (playerDistance < 100) {
 				// RUN AWAY!!!!
 				var v = {x:this.x - this.player.x,
 						 y: this.y - this.player.y};
@@ -464,14 +484,51 @@ function PlayScene() {
 				v.y *= this.speed * deltaTime;
 				this.moveAroundMap(v.x, v.y);
 			}
+			if (playerDistance < 300) {
+				// Shoot!
+				this.shootPlayer();
+			}
+		};
+
+
+		this.shootPlayer = function() {
+			if (this.shootCooldown > 0) return;
+
+			var diff = {x: this.player.x - this.x,
+						y: this.player.y - this.y};
+			diff = normalise(diff);
+			diff.x *= 350;
+			diff.y *= 350;
+			var angleToPlayer = angle(diff);
+			this.playScene.entities.push(new Bullet(
+				this.playScene, this.x, this.y, Game.images["broccoli-bullet"], this.team, diff.x, diff.y, 5, angleToPlayer + 90
+			));
+
+			var angleA = angleToPlayer + this.shootAngle;
+			var angleB = angleToPlayer - this.shootAngle;
+			var diffA = vectorFromAngle(angleA, 350);
+			this.playScene.entities.push(new Bullet(
+				this.playScene, this.x, this.y, Game.images["broccoli-bullet"], this.team, diffA.x, diffA.y, 5, angleA + 90
+			));
+			var diffB = vectorFromAngle(angleB, 350);
+			this.playScene.entities.push(new Bullet(
+				this.playScene, this.x, this.y, Game.images["broccoli-bullet"], this.team, diffB.x, diffB.y, 5, angleB + 90
+			));
+
+
+
+			// Game.sounds["player-fire"].play();
+
+			this.shootCooldown = this.shootDelay;
 		};
 	}
 
-	function Bullet(playScene, x,y, image, team, vx,vy, damage) {
+	function Bullet(playScene, x,y, image, team, vx,vy, damage, rotation) {
 		Entity.call(this, playScene, x,y, image, team, false);
 		this.vx = vx;
 		this.vy = vy;
 		this.damage = damage;
+		this.rotation = rotation || 0;
 
 		this.update = function(deltaTime) {
 			this.x += vx * deltaTime;
@@ -557,10 +614,10 @@ function PlayScene() {
 						this.player.y = yy;
 					} break;
 					case 3: { // Sprout!
-						this.entities.push(new Sprout(this, xx, yy, this.player));
+						// this.entities.push(new Sprout(this, xx, yy, this.player));
 					} break;
 					case 4: { // Monster Mash!
-						this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
+						// this.entities.push(new MonsterMash(this, xx, yy, this.player, 5));
 					} break;
 					case 5: { // Broccoli
 						this.entities.push(new Broccoli(this, xx, yy, this.player));
